@@ -1,0 +1,40 @@
+.transaction-container {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .account-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .balance-breakdown {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .transaction-history {
+    width: 100%; /* Adjust as needed */
+    border-collapse: collapse;
+  }
+  
+  .txHistory {
+    border-bottom: 1px solid #ddd;
+    padding: 0.5rem;
+  }
+  
+  .txHistory.header {
+    font-weight: bold; /* Style the header row */
+  }
+  
+  .txHistory td,
+  .txHistory th {
+    text-align: center;
+    padding: 0.5rem;
+  }
+  

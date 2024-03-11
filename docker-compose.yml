@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+
+  # PostgreSQL database
+  db:
+    build:
+      dockerfile: dockerfile_postgresql
+      args:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+    - "5432:5432"
+    networks:
+      - rgnetwork
+
+  # Node.js server
+  backend:
+    build:
+      dockerfile: dockerfile_backend
+    ports:
+    - "3100:3100"
+    networks:
+      - rgnetwork
+    volumes:
+          - ./backend:/backend
+    depends_on:
+      - db  # Ensure database is started before the Node.js service
+
+  # React application
+  frontend:
+    build:
+      dockerfile: dockerfile_frontend
+    ports:
+      - "3200:3200"  # Map port 80 of the container to port 8080 of the host (adjust if needed)
+    networks:
+      - rgnetwork
+    volumes:
+      - ./frontend:/frontend
+    depends_on:
+      - backend  # Ensure Node.js server is started before the React application
+
+
+networks:
+  rgnetwork:
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+/* src/App.css */
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.App-header {
+  background-color: #f0f0f0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.App-header p {
+  color: #000;
+  margin: 0;
+  font-size: 1.2rem; /* Adjust font size as desired */
+}

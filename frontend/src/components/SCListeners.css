@@ -1,0 +1,18 @@
+#scListContainer {
+    opacity: 0; /* Initially hidden */
+    animation: glowInOut 5s ease-in-out infinite;
+  }
+  
+  @keyframes glowInOut {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* Glowing effect */
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  

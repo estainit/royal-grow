@@ -1,0 +1,28 @@
+.button-container {
+    display: flex;
+    gap: 5px;  /* Adjust spacing between buttons (optional) */
+    margin-bottom: 5px;  /* Add some margin for better separation (optional) */
+    width: 700px;
+  }
+  
+  .button-container button {
+    flex: 1;  /* Make buttons share available space equally */
+    padding: 5px 5px;  /* Adjust padding for button text */
+    border: 1px solid #ccc; /* Add a subtle border */
+    border-radius: 4px; /* Rounded corners for a nicer look */
+    cursor: pointer; /* Indicate clickable behavior */
+  }
+  
+  .button-container button[disabled] {
+    opacity: 0.5; /* Dim disabled buttons */
+    cursor: default; /* Remove pointer for disabled buttons */
+  }
+  
+  .button-container input {
+    flex: 1;  /* Make input field share space with buttons */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 5px; /* Smaller padding for input field */
+    font-size: 14px;  /* Optional: Smaller font size for input field */
+    width: 30px;
+  }
