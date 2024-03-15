@@ -2,11 +2,17 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 import "./MessageVerifier.sol";
+import "./RGUtils.sol";
 
 contract RoyalGrow {
     address public verifierContractAddress;
     MessageVerifier verifierContract;
+
+    address public rgUtilsContractAddress;
+    RGUtils rgUtilsContract;
 
     uint256 public constant ONE_ETH = 1 ether; // the cost for update balance amount because of withdraw request from user
     uint256 public balancesRefreshCost = ONE_ETH; // the cost for update balance amount because of withdraw request from user
@@ -19,7 +25,6 @@ contract RoyalGrow {
     uint16 public withdrawReqSettelment = 15; // by minutes
     uint16 public contractRefreshGap = 5; // by minutes
     address public owner;
-    bytes32 public creditsMerkleRoot;
 
     // avoiding drain contract funds by DoS deposit & withdraw attack
     uint256 public trialFundingCost;
@@ -31,6 +36,23 @@ contract RoyalGrow {
         Paused
     }
     State public contractState;
+
+    struct DCProfile {
+        uint256 serialNumber;
+        bytes8 rootHash;
+    }
+
+    struct ClearRecord {
+        string serialNumber;
+        string creditor;
+        uint256 amount;
+        string salt;
+    }
+
+    uint dcSerialNumber;
+    mapping(uint => bytes8) public dcMerkleRoots;
+
+    mapping(string => bool) public withdrawedRecords;
 
     mapping(address => uint) public creditorsAmount;
     mapping(address => uint) public creditorsUpdate;
@@ -45,22 +67,37 @@ contract RoyalGrow {
     );
     event SignatureVerifiedEvent(address signer, bool isVerified);
     event GetCreditorBalanceEvent(address indexed user, uint256 amount);
-    event CreditsMerkleRootUpdatedEvent(bytes32 creditsMerkleRoot);
+    event CreditsMerkleRootUpdatedEvent(
+        uint serialNumber,
+        bytes8 creditsMerkleRoot
+    );
+    event InvalidDCProfEvent(
+        string rootHash,
+        string calculatedRoot,
+        string leave,
+        string[] proofs
+    );
 
     modifier onlyOwner() {
         require(owner == msg.sender);
         _;
     }
 
-    constructor(address _verifierContractAddress) payable {
+    constructor(
+        address _verifierContractAddress,
+        address _rgUtilsContractAddress
+    ) payable {
         verifierContractAddress = _verifierContractAddress;
         verifierContract = MessageVerifier(verifierContractAddress);
+        rgUtilsContractAddress = _rgUtilsContractAddress;
+        rgUtilsContract = RGUtils(rgUtilsContractAddress);
 
         owner = msg.sender;
         txFee = 1000;
         trialFundingCost = 10000;
         contractState = State.Running;
 
+        dcSerialNumber = 0;
         //emit PayToContractEvent(msg.sender, msg.value);
     }
 
@@ -82,34 +119,375 @@ contract RoyalGrow {
 
         balance += msg.value;
 
-        uint256 uniqueId = generateUniqueId();
+        uint256 uniqueId = rgUtilsContract.generateUniqueId();
         emit PayToContractEvent(msg.sender, msg.value, uniqueId);
     }
 
-    function generateUniqueId() public payable returns (uint256) {
-        return
-            uint256(
-                keccak256(
-                    abi.encodePacked(
-                        blockhash(block.number - 1),
-                        msg.value,
-                        msg.sender
-                    )
-                )
-            );
+    function updateCreditsMerkleRoot(bytes8 newCreditsMerkleRoot) public {
+        dcSerialNumber++;
+        dcMerkleRoots[dcSerialNumber] = newCreditsMerkleRoot;
+        emit CreditsMerkleRootUpdatedEvent(
+            dcSerialNumber,
+            newCreditsMerkleRoot
+        );
     }
 
-    function updateCreditsMerkleRoot(
-        bytes32 newCreditsMerkleRoot
-    ) public onlyOwner {
-        creditsMerkleRoot = newCreditsMerkleRoot;
-        emit CreditsMerkleRootUpdatedEvent(newCreditsMerkleRoot);
+    function getDCCurrentSerialNumber() public view returns (uint) {
+        return dcSerialNumber;
+    }
+
+    function getCreditsMerkleRoot() public view returns (string memory) {
+        return getCreditsMerkleRoot(dcSerialNumber);
+    }
+
+    function getCreditsMerkleRoot(
+        uint serialNumber
+    ) public view returns (string memory) {
+        return rgUtilsContract.bytes8ToAsciiString(dcMerkleRoots[serialNumber]);
+    }
+
+    function getLast10DCRoots() public view returns (DCProfile[10] memory) {
+        DCProfile[10] memory profiles;
+        uint max = 10;
+        if (dcSerialNumber < 10) max = dcSerialNumber;
+        for (uint i = 0; i < max; i++) {
+            uint index = dcSerialNumber - i;
+            profiles[i] = DCProfile(index, dcMerkleRoots[index]);
+        }
+        return profiles;
+    }
+
+    function validateDCCredit(
+        string calldata clearRecord,
+        string[] calldata proofs
+    ) public returns (bool, string memory) {
+        ClearRecord memory clR = parseClearRecord(clearRecord);
+        string memory hashedClearData = rgUtilsContract.doKeccak256(
+            clearRecord
+        );
+
+        string memory obfRecord = string(
+            abi.encodePacked(
+                clR.serialNumber,
+                ":",
+                Strings.toString(clR.amount),
+                ":",
+                hashedClearData
+            )
+        );
+
+        return validateDCProof(obfRecord, proofs, true);
+    }
+
+    /**
+    function validateDCProofDev(
+        string calldata obfRecord,
+        string[] calldata proofs,
+        bool isClearText
+    ) public returns (bool) {
+        bool res = validateDCProof(obfRecord, proofs, isClearText);
+        if (!res) {
+            string memory calculatedRoot = calcRootByAProve(
+                obfRecord,
+                proofs,
+                isClearText
+            );
+            emit InvalidDCProfEvent(
+                getCreditsMerkleRoot(),
+                calculatedRoot,
+                obfRecord,
+                proofs
+            );
+        }
+        return res;
+    }
+ */
+
+    function validateDCProof(
+        string memory obfRecord,
+        string[] memory proofs,
+        bool isClearText
+    ) public view returns (bool, string memory) {
+        string memory rootHash = getCreditsMerkleRoot();
+        bool isValid = validateProof(rootHash, obfRecord, proofs, isClearText);
+        if (!isValid) return (isValid, "Invalid Proof");
+
+        if (alreadyWithdrawed(obfRecord))
+            return (
+                false,
+                string(abi.encodePacked("Already withdrawed", obfRecord))
+            );
+
+        return (true, "Proof verified");
+    }
+
+    function validateProof(
+        string memory rootHash,
+        string memory leave,
+        string[] memory proofs,
+        bool isClearText
+    ) public view returns (bool) {
+        string memory calculatedRoot = calcRootByAProve(
+            leave,
+            proofs,
+            isClearText
+        );
+        return rgUtilsContract.areStrsEqual(calculatedRoot, rootHash);
+    }
+
+    function calcRootByAProve(
+        string memory leave,
+        string[] memory proofs,
+        bool isClearText
+    ) public view returns (string memory rootHash) {
+        string memory proof = leave;
+
+        if (isClearText) {
+            proof = rgUtilsContract.doKeccak256(leave);
+        }
+
+        if (proofs.length > 0) {
+            for (uint i = 0; i < proofs.length; i++) {
+                string memory pos = rgUtilsContract.pSubstring(proofs[i], 0, 1);
+                string memory val = rgUtilsContract.pSubstring(
+                    proofs[i],
+                    2,
+                    rgUtilsContract.getStringLength(proofs[i])
+                );
+                if (rgUtilsContract.areStrsEqual(pos, "r")) {
+                    proof = rgUtilsContract.doKeccak256(
+                        string(abi.encodePacked(proof, val))
+                    );
+                } else {
+                    proof = rgUtilsContract.doKeccak256(
+                        string(abi.encodePacked(val, proof))
+                    );
+                }
+            }
+        }
+        return proof;
     }
 
     function updateMyBalance() public {}
 
+    function addressToString(
+        address _addr
+    ) public pure returns (string memory) {
+        return Strings.toHexString(uint256(uint160(_addr)), 20);
+    }
+
+    function withdrawDummy(
+        string calldata _msg, // a string of comma seperated records
+        uint256 _amount,
+        string calldata signer,
+        bytes memory signature // signed records
+    ) public returns (bool, string memory) {
+        // check if the signer is the msg.sender
+        if (
+            !rgUtilsContract.areStrsEqual(signer, addressToString(msg.sender))
+        ) {
+            return (
+                false,
+                string(
+                    abi.encodePacked(
+                        "Tx Sender(",
+                        addressToString(msg.sender),
+                        ") is not the signer(",
+                        signer,
+                        ")"
+                    )
+                )
+            );
+        }
+
+        // check the signatur of clear record
+        bytes32 messageHash = keccak256(abi.encodePacked("withdraw", _msg));
+        bytes32 ethSignedMessageHash = verifierContract
+            .getEthSignedMessageHash4(messageHash);
+        address tmpSigner = verifierContract.recoverSigner4(
+            ethSignedMessageHash,
+            signature
+        );
+        if (tmpSigner != msg.sender) {
+            return (false, "Invalid signature");
+        }
+
+        string[125] memory tmpWithdrawedRecords;
+
+        string[] memory creditRecords = rgUtilsContract.splitString(_msg, "+");
+        uint recordsCount = creditRecords.length;
+        uint256 totalWithdrawAmount = 0;
+        uint256 tmpWithdrawedRecordsCounter = 0;
+        for (uint i = 0; i < recordsCount; i = i + 2) {
+            string memory clearRecord = creditRecords[i];
+            string[] memory proofs = rgUtilsContract.splitString(
+                creditRecords[i + 1],
+                ","
+            );
+
+            ClearRecord memory clR = parseClearRecord(clearRecord);
+
+            // check if signer is equal to creditor(the address in clear record)
+            if (
+                !rgUtilsContract.areStrsEqual(
+                    addressToString(msg.sender),
+                    clR.creditor
+                )
+            ) {
+                return (
+                    false,
+                    string(
+                        abi.encodePacked(
+                            "Tx Creditor(",
+                            clR.creditor,
+                            ") is not the signer(",
+                            addressToString(msg.sender),
+                            ")"
+                        )
+                    )
+                );
+            }
+
+            // check if regenerated obfRecord is correct
+            string memory regenObf = string(
+                abi.encodePacked(
+                    clR.serialNumber,
+                    ":",
+                    Strings.toString(clR.amount),
+                    ":",
+                    rgUtilsContract.doKeccak256(clearRecord)
+                )
+            );
+
+            if (alreadyWithdrawed(regenObf)) {
+                return (
+                    false,
+                    string(abi.encodePacked("Already withdrawed", regenObf))
+                );
+            }
+
+            /**
+             * 
+            FIXME: this checks MUST be activated ASAP
+            // check if given proof is correct
+            (
+                bool proofIsValid,
+                string memory proofValidateMsg
+            ) = validateDCProof(regenObf, proofs, true);
+            if (!proofIsValid) {
+                return (false, proofValidateMsg);
+            }
+ */
+
+            totalWithdrawAmount += clR.amount;
+            tmpWithdrawedRecords[tmpWithdrawedRecordsCounter] = regenObf;
+            tmpWithdrawedRecordsCounter += 1;
+        }
+
+        // check if creditor balance is enough
+        if (getCreditorBalance() < totalWithdrawAmount) {
+            return (
+                false,
+                string(
+                    abi.encodePacked(
+                        "Insufficient balance (",
+                        addressToString(msg.sender),
+                        ") ",
+                        Strings.toString(getCreditorBalance()),
+                        " < ",
+                        Strings.toString(totalWithdrawAmount),
+                        " Requested amount"
+                    )
+                )
+            );
+        }
+
+        // check if withdraw amount coincides records sum
+        if (_amount != totalWithdrawAmount) {
+            return (
+                false,
+                string(
+                    abi.encodePacked(
+                        "Discrepancy in withdraw amount(",
+                        Strings.toString(_amount),
+                        ") and records sum(",
+                        Strings.toString(totalWithdrawAmount),
+                        ") "
+                    )
+                )
+            );
+        }
+
+        // real transfer fund
+        for (uint256 i = 1; i < tmpWithdrawedRecordsCounter; i++) {
+            withdrawedRecords[tmpWithdrawedRecords[i]] = true;
+        }
+        uint prvAmount = getCreditorBalance();
+        uint currentCredit = creditorsAmount[msg.sender] - totalWithdrawAmount;
+        creditorsAmount[msg.sender] = currentCredit;
+        payable(msg.sender).transfer(totalWithdrawAmount);
+
+        return (
+            true,
+            string(
+                abi.encodePacked(
+                    Strings.toString(totalWithdrawAmount),
+                    "wei Withwrow Done. previous balace was ",
+                    Strings.toString(prvAmount),
+                    "wei, current balance is ",
+                    Strings.toString(getCreditorBalance()),
+                    "wei."
+                )
+            )
+        );
+    }
+
+    function parseClearRecord(
+        string memory aRecord
+    ) public view returns (ClearRecord memory) {
+        // 2:0x14dC79964da2C08b23698B3D3cc7Ca32193d9955:10000:2a2f2198
+        ClearRecord memory clR;
+        string[] memory recordSegments = rgUtilsContract.splitString(
+            aRecord,
+            ":"
+        );
+        clR.serialNumber = recordSegments[0];
+        clR.creditor = recordSegments[1];
+        clR.amount = rgUtilsContract.stringToNumeric(recordSegments[2]);
+        clR.salt = recordSegments[3];
+        return clR;
+    }
+
+    function alreadyWithdrawed(string memory obf) public view returns (bool) {
+        return withdrawedRecords[obf];
+    }
+
+    /**
+ 
+ 
+    struct ObfuscatedRecord {
+        string serialNumber;
+        uint256 amount;
+        string hashedClearRecord;
+    }
+
+    function parseObfRecord(
+        string memory aRecord
+    ) public returns (ObfuscatedRecord memory) {
+        ObfuscatedRecord memory obfR;
+        string[] memory recordSegments = rgUtilsContract.splitString(
+            aRecord,
+            ":"
+        );
+        obfR.serialNumber = recordSegments[0];
+        obfR.amount = rgUtilsContract.stringToNumeric(recordSegments[1]);
+        obfR.hashedClearRecord = recordSegments[2];
+        return obfR;
+    }
+ */
+
     function withdraw(
-        string calldata _msg,
+        string calldata _msg, // a string of comma seperated records
         uint256 _amount,
         string calldata _sig
     ) external returns (bool) {
@@ -172,25 +550,6 @@ contract RoyalGrow {
         }
     }
 
-    function macroParseMsg(
-        string calldata _msg
-    ) internal pure returns (string[] memory) {
-        string[] memory parts = new string[](3);
-        // Split the string
-        uint256 start = 0;
-        uint256 index = 0;
-        for (uint256 i = 0; i < bytes(_msg).length; i++) {
-            if (bytes(_msg)[i] == bytes1(" ")) {
-                parts[index] = substring(_msg, start, i);
-                start = i + 1;
-                index++;
-            }
-        }
-        parts[index] = substring(_msg, start, bytes(_msg).length);
-
-        return parts;
-    }
-
     function verifyMessageSignature(
         string memory message,
         bytes memory signature,
@@ -207,20 +566,6 @@ contract RoyalGrow {
         if (!isVerified) emit SignatureVerifiedEvent(signer, isVerified);
 
         return isVerified;
-    }
-
-    // Helper function to extract substring
-    function substring(
-        string memory str,
-        uint256 startIndex,
-        uint256 endIndex
-    ) internal pure returns (string memory) {
-        bytes memory strBytes = bytes(str);
-        bytes memory result = new bytes(endIndex - startIndex);
-        for (uint256 i = startIndex; i < endIndex; i++) {
-            result[i - startIndex] = strBytes[i];
-        }
-        return string(result);
     }
 
     function getDepositsBalance() public view returns (uint) {
@@ -242,13 +587,5 @@ contract RoyalGrow {
         // Implementation of base64 decoding logic
         // You can use libraries like https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Base64.sol
         // or implement your own decoding logic
-    }
-
-    function transferCoin(
-        uint256 amount,
-        address receiver,
-        string calldata proofMsg
-    ) public {
-        //bytes memory decodedMessage = bytes(base64Decode(proofMsg));
     }
 }

@@ -2,7 +2,6 @@
     display: flex;
     gap: 5px;  /* Adjust spacing between buttons (optional) */
     margin-bottom: 5px;  /* Add some margin for better separation (optional) */
-    width: 700px;
   }
   
   .button-container button {
@@ -25,4 +24,12 @@
     padding: 2px 5px; /* Smaller padding for input field */
     font-size: 14px;  /* Optional: Smaller font size for input field */
     width: 30px;
+  }
+
+  .getLast10DCRoots{
+    border: 1px solid rgb(250, 238, 250);
+    background-color: aliceblue;
+    border-radius: 4px;
+    padding: 2px 5px; /* Smaller padding for input field */
+    font-size: 14px;  /* Optional: Smaller font size for input field */
   }

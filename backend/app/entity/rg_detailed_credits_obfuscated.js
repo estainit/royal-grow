@@ -12,7 +12,7 @@ async function insertToObfDetailedCredits(
   try {
     const query = `
         INSERT INTO rg_detailed_credits_obfuscated 
-        (serial_number, creditor, obf_record_line, 
+        (serial_number, creditor, obf_record, 
             internal_uniq_key, handler_hash, amount, proofs)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *;
@@ -33,21 +33,27 @@ async function insertToObfDetailedCredits(
   }
 }
 
-async function getObfRecordsBySerialNumber(serialNumber) {
-    try {
-      const query = `
+async function getObfRecordsBySerialNumber(serialNumber, creditor = null) {
+  try {
+    let query = `
         SELECT * FROM rg_detailed_credits_obfuscated WHERE serial_number = $1 ORDER BY amount DESC;
       `;
-      const values = [serialNumber];
-      const result = await dbPool.query(query, values);
-      return result.rows;
-    } catch (err) {
-      console.error("Error get ObfRecordsBySerialNumber:", err);
-      throw err; // Re-throw the error for handling in the calling code
+    let values = [serialNumber];
+    if (creditor) {
+      query = `
+        SELECT * FROM rg_detailed_credits_obfuscated WHERE serial_number = $1 AND creditor= $2 ORDER BY amount DESC;
+      `;
+      values = [serialNumber, creditor];
     }
+    const result = await dbPool.query(query, values);
+    return result.rows;
+  } catch (err) {
+    console.error("Error get ObfRecordsBySerialNumber:", err);
+    throw err; // Re-throw the error for handling in the calling code
   }
+}
 
 module.exports = {
   insertToObfDetailedCredits,
-  getObfRecordsBySerialNumber
+  getObfRecordsBySerialNumber,
 };

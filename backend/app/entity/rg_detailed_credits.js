@@ -10,7 +10,7 @@ async function insertToDetailedCredits(
 ) {
   try {
     const query = `
-        INSERT INTO rg_detailed_credits (serial_number, creditor, record_line, 
+        INSERT INTO rg_detailed_credits (serial_number, creditor, clear_record, 
           internal_uniq_key,
           handler_hash, amount)
         VALUES ($1, $2, $3, $4,$5,$6)
@@ -31,12 +31,18 @@ async function insertToDetailedCredits(
   }
 }
 
-async function getRecordsBySerialNumber(serialNumber) {
+async function getRecordsBySerialNumber(serialNumber, creditor) {
   try {
-    const query = `
+    let query = `
       SELECT * FROM rg_detailed_credits WHERE serial_number = $1 ORDER BY amount DESC;
     `;
-    const values = [serialNumber];
+    let values = [serialNumber];
+    if (creditor) {
+      query = `
+      SELECT * FROM rg_detailed_credits WHERE serial_number = $1 AND creditor=$2 ORDER BY amount DESC;
+    `;
+      values = [serialNumber, creditor];
+    }
     const result = await dbPool.query(query, values);
     return result.rows;
   } catch (err) {
@@ -47,5 +53,5 @@ async function getRecordsBySerialNumber(serialNumber) {
 
 module.exports = {
   insertToDetailedCredits,
-  getRecordsBySerialNumber
+  getRecordsBySerialNumber,
 };

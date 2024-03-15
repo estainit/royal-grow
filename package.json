@@ -3,11 +3,12 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "ethers": "^6.11.1",
-    "hardhat": "^2.21.0",
+    "hardhat": "^2.22.1",
     "jest": "^29.7.0"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@openzeppelin/contracts": "^5.0.2",
     "alchemy-sdk": "^3.1.2",
     "ethers": "^6.11.1"
   }

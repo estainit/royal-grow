@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
-import { AppContext } from "./AppContext";
-import { getWalletSelectedAccountByWalletSigner } from "./CUtils";
+import { AppContext } from "../AppContext";
+import { getWalletSelectedAccountByWalletSigner } from "../CUtils";
 
 const SendMoney = () => {
   const { globData } = useContext(AppContext);
@@ -81,7 +81,7 @@ const SendMoney = () => {
   };
 
   return (
-    <div className="App-header">
+    <div className="depos-money">
       <h2>Charge your account</h2>
       <input
         type="number"

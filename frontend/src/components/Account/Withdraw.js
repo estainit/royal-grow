@@ -1,6 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { AppContext } from "./AppContext";
-import { getWalletSelectedAccount, etherToWei } from "./CUtils";
+import { AppContext } from "../AppContext";
+import {
+  getWalletSelectedAccount,
+  etherToWei,
+  clearRecordParser,
+  getWalletSelectedAccountByWalletSigner,
+  weiToEther,
+} from "../CUtils";
 
 import { ethers } from "ethers";
 
@@ -10,6 +16,25 @@ const Withdraw = () => {
   const [message, setMessage] = useState("");
   const [amount, setAmount] = useState(0);
 
+  function hexStringToBytes(hexString) {
+    // Remove '0x' prefix if present
+    if (hexString.slice(0, 2) === "0x") {
+      hexString = hexString.slice(2);
+    }
+
+    // Define an array to store the byte values
+    var bytes = [];
+
+    // Loop through the hex string, two characters at a time
+    for (var i = 0; i < hexString.length; i += 2) {
+      // Convert each pair of characters to a byte value and push to the array
+      bytes.push(parseInt(hexString.slice(i, i + 2), 16));
+    }
+
+    // Return the resulting byte array
+    return bytes;
+  }
+
   const handleWithdraw = async () => {
     if (!globData.web3 || !message || !amount) {
       console.error("Missing required data");
@@ -18,27 +43,36 @@ const Withdraw = () => {
 
     // Request user confirmation to sign message
     try {
-      const selectedAccount = await getWalletSelectedAccount(globData);
-      console.log("wwwwwwww message:", message);
-      console.log("wwwwwwww selectedAccount:", selectedAccount);
+      const signer = await getWalletSelectedAccountByWalletSigner(globData);
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      console.log("wwwwwwww signer:", signer);
+      console.log("iiii   amount wei: ", amount);
+      console.log("iiii   amount eth: ", weiToEther(amount));
 
-      const signature = await signer.signMessage(message);
-      console.log("wwwwwwww signature:", signature);
-
+      const msgToBeSigned = "withdraw" + message;
       const address = await signer.getAddress();
-      console.log("wwwwwwww address:", address);
+      const signature = await window.ethereum.request({
+        method: "personal_sign",
+        params: [globData.web3.utils.keccak256(msgToBeSigned), address],
+      });
 
-      // Call withdraw with message, amount, and signature
+      const tx = await globData.royalGrowcontractInstance.methods
+        .withdrawDummy(
+          message,
+          amount,
+          address.toString().toLowerCase(),
+          signature
+        )
+        .call({ from: address.toLowerCase() });
+      console.log("Withdrow res:", tx);
+
+      /**
       const tx = await globData.royalGrowcontractInstance.methods
         .withdraw(message, etherToWei(amount), signature)
         .send({
           from: address,
         });
       console.log("Transaction hash:", tx.transactionHash);
+       */
     } catch (error) {
       console.error("Error signing or sending transaction:", error);
     }
@@ -114,7 +148,7 @@ const Withdraw = () => {
   }, [globData]);
 
   return (
-    <div className="App-header">
+    <div className="withdrow-fund">
       <input
         type="text"
         placeholder="Enter message"
@@ -122,10 +156,10 @@ const Withdraw = () => {
         onChange={(e) => setMessage(e.target.value)}
       />
       <input
-        type="number"
+        type="text"
         placeholder="Enter amount"
         value={amount}
-        onChange={(e) => setAmount(Number(e.target.value))}
+        onChange={(e) => setAmount(e.target.value)}
       />
       <button onClick={handleWithdraw}>Withdraw</button>
     </div>

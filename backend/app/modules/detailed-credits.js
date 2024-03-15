@@ -1,10 +1,20 @@
 const { breakDown, getRandomInt } = require("../cutils");
-const { generate_m, doKeccak256 } = require("../merkle-engine");
+const {
+  generate_m,
+  doKeccak256,
+  getProofByLeave,
+  validateProof,
+} = require("../merkle-engine");
 
 const {
   insertToDetailedCredits,
   getRecordsBySerialNumber,
 } = require("../entity/rg_detailed_credits");
+
+const {
+  getSumAllCreditors,
+  getAllCreditors,
+} = require("../entity/rg_balances");
 
 const {
   insertToObfDetailedCredits,
@@ -24,7 +34,7 @@ async function generateRGCD(serialNumber = 0) {
   // save detailedCredits
   for (const aDetailedCredits of detailedCredits) {
     console.log("aDetailedCredits: ", aDetailedCredits);
-    insertToDetailedCredits(
+    await insertToDetailedCredits(
       aDetailedCredits.serialNumber,
       aDetailedCredits.creditor,
       aDetailedCredits.clearRecord,
@@ -58,14 +68,14 @@ async function generateRGCD(serialNumber = 0) {
     console.log("Final proved: ", proved);
     if (!proved) throw new Error("Invalid Merkle prove!");
 
-    insertToObfDetailedCredits(
+    await insertToObfDetailedCredits(
       aDetailedObfCredits.serialNumber,
       aDetailedObfCredits.creditor,
       aDetailedObfCredits.obfuscatedRecord,
       aDetailedObfCredits.internalUniqKey,
       aDetailedObfCredits.handlerHash,
       aDetailedObfCredits.amount,
-      JSON.stringify(proof_hashes)
+      customSerializeProofs(proof_hashes)
     );
   }
   serializedRecords = JSON.stringify(serializedRecords);
@@ -73,6 +83,12 @@ async function generateRGCD(serialNumber = 0) {
   const publicRGCD = await getRecordsProfileBySerialNumber(serialNumber);
 
   return publicRGCD;
+}
+
+function customSerializeProofs(proofs) {
+  let out = "";
+  for (const aProof of proofs) out += "," + aProof;
+  return out.substring(1);
 }
 
 async function prepareRGCDInfo(serialNumber = 0) {
@@ -160,32 +176,54 @@ async function prepareRGCDInfo(serialNumber = 0) {
   };
 }
 
-async function printRGCD(serialNumber = 0) {
+async function makeFullRGCD(serialNumber, account = null) {
   let records = {};
+  console.log("makeFullRGCD: ", serialNumber, account);
   const clearRecordsBySerialNumber = await getRecordsBySerialNumber(
-    serialNumber
+    serialNumber,
+    account
   );
   for (const aRec of clearRecordsBySerialNumber) {
-    records[aRec.handler_hash] = { 
-        handlerHash: aRec.handler_hash, 
-        creditor: aRec.creditor, 
-        amount: aRec.amount, 
-        clearRecord: aRec.record_line, 
-        uniqKey: aRec.internal_uniq_key, 
+    records[aRec.handler_hash] = {
+      handlerHash: aRec.handler_hash,
+      creditor: aRec.creditor,
+      amount: aRec.amount,
+      clearRecord: aRec.clear_record,
+      uniqKey: aRec.internal_uniq_key,
     };
   }
-  const obfRecordsBySerialNumber = await getObfRecordsBySerialNumber(
-    serialNumber
-  );
-  const publicRGCD = await getRecordsProfileBySerialNumber(serialNumber);
 
+  const obfRecordsBySerialNumber = await getObfRecordsBySerialNumber(
+    serialNumber,
+    account
+  );
+  for (const aRec of obfRecordsBySerialNumber) {
+    let prvRec = records[aRec.handler_hash];
+    prvRec["obfRecord"] = aRec.obf_record;
+    prvRec["proofs"] = aRec.proofs;
+    records[aRec.handler_hash] = prvRec;
+  }
+
+  let arrayRecords = [];
+  for (const key of Object.keys(records)) {
+    arrayRecords.push(records[key]);
+  }
+
+  const publicRGCD = await getRecordsProfileBySerialNumber(serialNumber);
+  if (!publicRGCD)
+    return {
+      serialNumber: 0,
+      root: "No profile for serial number " + serialNumber,
+      records: [],
+    };
   return {
+    serialNumber,
     root: publicRGCD.root_hash,
-    records
+    records: arrayRecords,
   };
 }
 
 module.exports = {
   generateRGCD,
-  printRGCD,
+  makeFullRGCD,
 };

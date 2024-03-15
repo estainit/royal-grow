@@ -28,22 +28,63 @@ const SCListeners = () => {
       )} Eth ID: ${event.returnValues.uniqueId}`;
       dspEvent(msg);
 
-      postToBE("payToContract", {
+      postToBE("payment/payToContract", {
         sender: event.returnValues.sender,
         amount: String(event.returnValues.amount),
         uniqueId: String(event.returnValues.uniqueId),
       });
     };
 
+    const handleCreditsMerkleRootUpdatedEvent = (event) => {
+      let msg = `Updating DCRootHash by ${event.returnValues.sender} Serial number (${event.returnValues.serialNumber}) root hash(${event.returnValues.creditsMerkleRoot})`;
+      dspEvent(msg);
+    };
+
+    const handleInvalidDCProfEvent = (event) => {
+      let msg = `Invalid DC Prof Event by ${event.returnValues.sender}
+      Serial number (${event.returnValues.serialNumber}) 
+      root hash(${event.returnValues.rootHash})
+      calculatedRoot(${event.returnValues.calculatedRoot})
+      leave(${event.returnValues.leave})
+      proofHashes(${event.returnValues.proofHashes})
+      `;
+      dspEvent(msg);
+      console.log(msg);
+    };
+
     const subscribeToEvent = async () => {
-      const subscription =
+      const subsInvalidDCProfEvent =
+        await globData.royalGrowcontractInstance.events.InvalidDCProfEvent({
+          fromBlock: "latest",
+        });
+      console.log("Invalid DC Prof Event is registered!");
+      subsInvalidDCProfEvent.on("data", (event) => {
+        handleInvalidDCProfEvent(event);
+      });
+      subsInvalidDCProfEvent.on("error", dspEvent(console.error, "err"));
+
+      const subsPayToContractEvent =
         await globData.royalGrowcontractInstance.events.PayToContractEvent({
           fromBlock: "latest",
         });
-      subscription.on("data", (event) => {
+      subsPayToContractEvent.on("data", (event) => {
         handlePayToContractEvent(event);
       });
-      subscription.on("error", dspEvent(console.error, "err"));
+      subsPayToContractEvent.on("error", dspEvent(console.error, "err"));
+
+      const subsCreditsMerkleRootUpdatedEvent =
+        await globData.royalGrowcontractInstance.events.CreditsMerkleRootUpdatedEvent(
+          {
+            fromBlock: "latest",
+          }
+        );
+      subsCreditsMerkleRootUpdatedEvent.on("data", (event) => {
+        handleCreditsMerkleRootUpdatedEvent(event);
+      });
+      subsCreditsMerkleRootUpdatedEvent.on(
+        "error",
+        dspEvent(console.error, "err")
+      );
     };
 
     if (!globData) return;

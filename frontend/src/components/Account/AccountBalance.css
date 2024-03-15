@@ -38,3 +38,41 @@
     padding: 0.5rem;
   }
   
+  .green-button {
+    background-color: green;
+    color: white;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .red-button {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .user-mgmt{
+    border-bottom: 1px solid #c8c9f8;
+    background-color: #e5e5fa;
+    padding: 8px 16px;
+  }
+
+  .depos-money{
+    border-bottom: 2px solid #ffffff;
+    height: 200px;
+  }
+
+  .withdrow-fund{
+    border-bottom: 2px solid #ffffff;
+    height: 200px;
+  }
+
+  .transfer-funds{
+    border-bottom: 2px solid #ffffff;
+    height: 200px;
+  }

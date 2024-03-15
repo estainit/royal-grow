@@ -1,0 +1,28 @@
+.detailed-credits {
+  font-size: 0.8rem; /* Reduce overall font size  */
+  line-height: 1.2; /* Adjust line height for better readability */
+  margin: 10px; /* Optional: Add some margin for spacing */
+}
+
+.record-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.record-item-label {
+  margin: 0 5px;
+  /* Adjust font-weight for labels as needed */
+}
+
+.record-item-label p:first-child {
+  font-weight: bold;
+}

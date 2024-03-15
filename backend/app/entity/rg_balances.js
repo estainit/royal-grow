@@ -1,8 +1,5 @@
 const dbPool = require("../db-pool");
 
-const { breakDown, getRandomInt } = require("../cutils");
-const { generate_m, doKeccak256 } = require("../merkle-engine");
-
 async function getAllCreditors() {
   try {
     const query = `
@@ -35,7 +32,6 @@ async function getSumAllCreditors() {
   }
 }
 
-
 async function getRGCredit(creditor) {
   try {
     const query = `
@@ -43,7 +39,7 @@ async function getRGCredit(creditor) {
       `;
     const values = [creditor];
     const result = await dbPool.query(query, values);
-    if (result.rows.length > 0) return result.rows[0].amount;
+    if (result.rows.length > 0) return parseInt(result.rows[0].amount);
     return 0;
   } catch (err) {
     console.error("Error get RGCredit:", err);
@@ -52,44 +48,65 @@ async function getRGCredit(creditor) {
   }
 }
 
-async function upsertCredit(payer, amount, uniqueId) {
-  //    try {
-  //      const query = `
-  //        INSERT INTO rg_balances (payer, amount, payment_id, payment_time)
-  //        VALUES ($1, $2, $3, $4)
-  //        RETURNING *;
-  //      `;
-  //      const payment_time = new Date().toISOString(); // Returns an ISO 8601 formatted string
-  //      const values = [payer, amount, uniqueId, payment_time];
-  //      console.log("inserting payment values", values);
-  //      const result = await dbPool.query(query, values);
-  //    } catch (err) {
-  //      console.error("Error inserting payment:", err);
-  //    }
-  //    return await getPaymentByUniqueId(uniqueId);
+async function upsertCredit(creditor, amount) {
+  try {
+    const query = `
+          INSERT INTO 
+          rg_balances (creditor, amount)
+          VALUES ($1, $2)
+          ON CONFLICT (id)
+          DO UPDATE SET amount = EXCLUDED.amount;
+        `;
+    const values = [creditor, amount];
+    console.log("Upserting payment values", values);
+    await dbPool.query(query, values);
+    return true;
+  } catch (err) {
+    console.error("Error upserting payment:", err);
+    return false;
+  }
 }
 
-async function insertCredit(payer, amount, uniqueId) {
-  //    try {
-  //      const query = `
-  //        INSERT INTO rg_balances (payer, amount, payment_id, payment_time)
-  //        VALUES ($1, $2, $3, $4)
-  //        RETURNING *;
-  //      `;
-  //      const payment_time = new Date().toISOString(); // Returns an ISO 8601 formatted string
-  //      const values = [payer, amount, uniqueId, payment_time];
-  //      console.log("inserting payment values", values);
-  //      const result = await dbPool.query(query, values);
-  //    } catch (err) {
-  //      console.error("Error inserting payment:", err);
-  //    }
-  //    return await getPaymentByUniqueId(uniqueId);
+async function updateCredit(creditor, amount) {
+  try {
+    const query = `
+          UPDATE rg_balances SET amount=$1, update_time=$2 WHERE creditor= $3;
+        `;
+    const update_time = new Date().toISOString();
+    const values = [amount, update_time, creditor];
+    console.log("Updating credit amount", values);
+    await dbPool.query(query, values);
+    return true;
+  } catch (err) {
+    console.error("Error in pdating credit amount:", creditor, amount, err);
+    return false;
+  }
+  return await getPaymentByUniqueId(uniqueId);
+}
+
+async function insertCredit(creditor, amount) {
+  try {
+    const query = `
+          INSERT INTO rg_balances (creditor, amount, update_time)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *;
+        `;
+    const payment_time = new Date().toISOString();
+    const values = [creditor, amount, payment_time];
+    console.log("inserting payment values", values);
+    await dbPool.query(query, values);
+    return true;
+  } catch (err) {
+    console.error("Error inserting payment:", err);
+    return false;
+  }
 }
 
 module.exports = {
   getRGCredit,
   getAllCreditors,
   getSumAllCreditors,
-  insertCredit,
   upsertCredit,
+  insertCredit,
+  updateCredit,
 };

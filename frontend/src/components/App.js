@@ -8,10 +8,9 @@ import AdminPanel from "./AdminPanel/AdminPanel";
 import ContractBalance from "./ContractBalance";
 import TransactionInfo from "./TransactionInfo";
 import ChooseWinner from "./ChooseWinner";
-import SendMoney from "./SendMoney";
-import TransferFund from "./TransferFund";
-import Withdraw from "./Withdraw";
-import LatestPayment from "./LatestPayment";
+
+
+
 import SCListeners from "./SCListeners";
 
 //import { BLOCKCHAIN_PROVIDER_URL } from "../config";
@@ -65,19 +64,6 @@ function App() {
       <TransactionInfo />
       <ChooseWinner />
       
-      <TransferFund />
-
-      
-      
-      <Row>
-        <Col xs={6} sm={6} md={6} lg={6} xl={6}>
-        <SendMoney />
-        </Col>
-        <Col xs={6} sm={6} md={6} lg={6} xl={6}>
-        <Withdraw />
-        </Col>
-      </Row>
-
       <Row>
         <Col xs={8} sm={8} md={8} lg={8} xl={8}>
           <SCListeners />

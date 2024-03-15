@@ -44,9 +44,19 @@ const balanceBeforeDeploy = await provider.getBalance(deployer.address);
   saveFrontendContracts("MessageVerifier");
 
 
+  // deploy RGUtils
+  const rgUtilsDeploy = await ethers.deployContract("RGUtils");
+  const rgUtilsDeployRes = await rgUtilsDeploy.waitForDeployment();
+  let rgUtilsDeployedAddress = await rgUtilsDeployRes.getAddress();
+  console.log(`Deployed RGUtils(${rgUtilsDeployedAddress})`);
+  contractsAddresses["RGUtils"] = rgUtilsDeployedAddress;
+  saveFrontendContracts("RGUtils");
+
+
 
   // deploy RoyalGrow
-  const royalGrowDeploy = await ethers.deployContract("RoyalGrow", [messageVerifierDeployedAddress]); //, { value: 1 }
+  const royalGrowDeploy = await ethers.deployContract(
+    "RoyalGrow", [messageVerifierDeployedAddress, rgUtilsDeployedAddress]); //, { value: 1 }
   const royalGrowDeployRes = await royalGrowDeploy.waitForDeployment();
   let deployedAddress = await royalGrowDeployRes.getAddress();
   console.log(`Deployed RoyalGrow(${deployedAddress})`);
