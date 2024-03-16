@@ -91,18 +91,65 @@ function breakDown(amount) {
 }
 
 function getRandomInt(min, max) {
-    min = Math.ceil(min); // Inclusive lower bound
-    max = Math.floor(max); // Inclusive upper bound
-  
-    // Use Math.random() for simpler generation (consider security for production)
-    const randomDecimal = Math.random();
-    const scaled = randomDecimal * (max - min + 1) + min;
-    return Math.floor(scaled);  // Ensure integer using Math.floor
-  }
-  
-  
+  min = Math.ceil(min); // Inclusive lower bound
+  max = Math.floor(max); // Inclusive upper bound
+
+  // Use Math.random() for simpler generation (consider security for production)
+  const randomDecimal = Math.random();
+  const scaled = randomDecimal * (max - min + 1) + min;
+  return Math.floor(scaled); // Ensure integer using Math.floor
+}
+
+function getNow() {
+  //   var day_names = new Array("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT");
+
+  //   var month_names = new Array(
+  //     "JAN",
+  //     "FEB",
+  //     "MAR",
+  //     "APR",
+  //     "MAY",
+  //     "JUN",
+  //     "JUL",
+  //     "AUG",
+  //     "SEP",
+  //     "OCT",
+  //     "NOV",
+  //     "DEC"
+  //   );
+
+  var date = new Date();
+  var curr_date = date.getDate();
+  var curr_month = date.getMonth() + 1;
+  var curr_year = date.getFullYear();
+  var cur_hour = date.getHours();
+  var minutes = date.getMinutes();
+  var seconds = date.getSeconds();
+  var miliseconds = date.getMilliseconds();
+  //   var AMorPM = cur_hour >= 12 ? (AMorPM = "PM") : (AMorPM = "AM");
+  cur_hour = cur_hour > 12 ? (cur_hour -= 12) : cur_hour;
+
+  if (cur_hour < 10) cur_hour = "0" + cur_hour;
+  if (minutes < 10) minutes = "0" + minutes;
+
+  var finalDate =
+    curr_year +
+    "-" +
+    curr_month +
+    "-" +
+    curr_date +
+    " " +
+    cur_hour +
+    ":" +
+    minutes +
+    ":" +
+    seconds;
+
+  return finalDate;
+}
 
 module.exports = {
   breakDown,
-  getRandomInt
+  getRandomInt,
+  getNow,
 };

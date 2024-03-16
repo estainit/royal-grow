@@ -61,12 +61,12 @@ const SCListeners = () => {
     };
 
     const subscribeToEvent = async () => {
-      
+
       const subsObfBurntEvent =
         await globData.royalGrowcontractInstance.events.ObfBurntEvent({
           fromBlock: "latest",
         });
-      console.log("Invalid DC Prof Event is registered!");
+      console.log("subs Obf Burnt Event is registered!");
       subsObfBurntEvent.on("data", (event) => {
         handleObfBurntEvent(event);
       });

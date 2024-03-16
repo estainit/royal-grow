@@ -49,6 +49,7 @@ CREATE TABLE rg_detailed_credits_obfuscated_profile (
   serial_number NUMERIC,
   root_hash VARCHAR(255) NOT NULL,
   records_str TEXT,
+  meta_str TEXT,
   create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT unique_ser_hash UNIQUE (serial_number)
 );

@@ -3,16 +3,17 @@ const dbPool = require("../db-pool");
 async function insertToObfDetailedCreditsProfile(
   serialNumber,
   rootHash,
-  serializedRecords
+  serializedRecords,
+  serializedMetaInfo
 ) {
   try {
     const query = `
         INSERT INTO rg_detailed_credits_obfuscated_profile 
-        (serial_number, root_hash, records_str)
-        VALUES ($1, $2, $3)
+        (serial_number, root_hash, records_str, meta_str)
+        VALUES ($1, $2, $3, $4)
         RETURNING *;
       `;
-    const values = [serialNumber, rootHash, serializedRecords];
+    const values = [serialNumber, rootHash, serializedRecords, serializedMetaInfo];
     console.log("inserting creditor obf detailed: ", values);
     const result = await dbPool.query(query, values);
   } catch (err) {

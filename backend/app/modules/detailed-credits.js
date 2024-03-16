@@ -25,6 +25,7 @@ const {
   insertToObfDetailedCreditsProfile,
   getRecordsProfileBySerialNumber,
 } = require("../entity/rg_detailed_credits_obfuscated_profile");
+const { getNow } = require("../cutils");
 
 async function generateRGCD(serialNumber = 0) {
   const { detailedCredits, obfuscatedDetailedCredits } = await prepareRGCDInfo(
@@ -46,7 +47,24 @@ async function generateRGCD(serialNumber = 0) {
 
   let obfLeaves = obfuscatedDetailedCredits.map((obj) => obj.obfuscatedRecord);
   console.log("obfLeaves ", obfLeaves);
-  const { root, proofs, version, levels, leaves } = generate_m(obfLeaves);
+
+  const docInfoLeaves = [serialNumber, getNow()];
+  const lotteryTicketsLeaves = [];
+  const lotteryRevealTicketsLeaves = [];
+  const lotteryOracleLeaves = [];
+  const crowFundingLeaves = [];
+
+  const finalMerkleLeaves = [
+    ...docInfoLeaves,
+    ...obfLeaves,
+    ...lotteryTicketsLeaves,
+    ...lotteryRevealTicketsLeaves,
+    ...lotteryOracleLeaves,
+    ...crowFundingLeaves
+  ];
+
+  const { root, proofs, version, levels, leaves } =
+    generate_m(finalMerkleLeaves);
   console.log("root: ", root);
   console.log("proofs: ", proofs);
   console.log("version: ", version);
@@ -54,17 +72,17 @@ async function generateRGCD(serialNumber = 0) {
   console.log("leaves: ", leaves);
 
   // save obfDetailedCredits
-  let serializedRecords = [];
+  // let obfLeaves2 = [];
   for (const aDetailedObfCredits of obfuscatedDetailedCredits) {
     console.log("\n aDetailedObfCredits: ", aDetailedObfCredits);
 
-    const clearLeave = aDetailedObfCredits.obfuscatedRecord;
-    serializedRecords.push(clearLeave);
-    let proof_hashes = getProofByLeave(proofs, clearLeave);
-    console.log("Final Proof: ", proof_hashes);
+    const obfLeave = aDetailedObfCredits.obfuscatedRecord;
+    // obfLeaves2.push(obfLeave);
+    let proofsArray = getProofByLeave(proofs, obfLeave);
+    console.log("Final Proof: ", proofsArray);
 
     // dummy proof tests
-    let proved = validateProof(root, clearLeave, proof_hashes, "string");
+    let proved = validateProof(root, obfLeave, proofsArray, "string");
     console.log("Final proved: ", proved);
     if (!proved) throw new Error("Invalid Merkle prove!");
 
@@ -75,11 +93,18 @@ async function generateRGCD(serialNumber = 0) {
       aDetailedObfCredits.internalUniqKey,
       aDetailedObfCredits.handlerHash,
       aDetailedObfCredits.amount,
-      customSerializeProofs(proof_hashes)
+      customSerializeProofs(proofsArray)
     );
   }
-  serializedRecords = JSON.stringify(serializedRecords);
-  insertToObfDetailedCreditsProfile(serialNumber, root, serializedRecords);
+  let serializedRecords = JSON.stringify(finalMerkleLeaves);
+  let serialNumberProofsArray = getProofByLeave(proofs, docInfoLeaves[0]);
+  let creationDateProofsArray = getProofByLeave(proofs, docInfoLeaves[1]);
+  insertToObfDetailedCreditsProfile(
+    serialNumber,
+    root,
+    serializedRecords,
+    JSON.stringify({ serialNumberProofsArray, creationDateProofsArray })
+  );
   const publicRGCD = await getRecordsProfileBySerialNumber(serialNumber);
 
   return publicRGCD;
@@ -169,7 +194,6 @@ async function prepareRGCDInfo(serialNumber = 0) {
   );
   obfuscatedRecords = obfuscatedRecords.sort(); // create more obfuscativity
   console.log("obfuscatedRecords: ", obfuscatedRecords);
-  //const { root, proofs, version, levels, leaves } =    generate_m(obfuscatedRecords);
 
   return {
     detailedCredits,
