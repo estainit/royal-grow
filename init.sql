@@ -19,7 +19,7 @@ CREATE TABLE rg_balances (
 --- insert into rg_balances (creditor, amount) values ('0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', 10000000600902709);
 --- insert into rg_balances (creditor, amount) values ('0x90F79bf6EB2c4f870365E785982E1f101E93b906', 8159);
 --- insert into rg_balances (creditor, amount) values ('0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', 253);
---- insert into rg_balances (creditor, amount) values ('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266', 9748253);
+--- insert into rg_balances (creditor, amount) values ('0x70997970c51812dc3a010c7d01b50e0d17dc79c8', 9748253);
 
 CREATE TABLE rg_detailed_credits (
   id SERIAL PRIMARY KEY,  -- Auto-incrementing integer for ID

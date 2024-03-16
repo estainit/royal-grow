@@ -28,6 +28,7 @@ const AccountBalance = () => {
   const [fullDC, setFullDC] = useState({ root: "", records: [] });
   const [proofVerifiyResults, setProofVerifiyResults] = useState({});
   const [creditVerifiyResults, setCreditVerifiyResults] = useState({});
+  const [withdrawed, setWithdrawed] = useState({});
 
   const fetchOffchainPayedToContract = async () => {
     const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(
@@ -112,6 +113,17 @@ const AccountBalance = () => {
     setProofVerifiyResults((prevResults) => ({
       ...prevResults,
       [uniqKey]: validateDCProofRes[0],
+    }));
+  };
+
+  const alreadyWithdrawed = async (obfRecord) => {
+    let alreadyWithdrawedRes = await globData.royalGrowcontractInstance.methods
+      .alreadyWithdrawed(obfRecord)
+      .call();
+    console.log("Control already Withdrawed Res: ", alreadyWithdrawedRes);
+    setWithdrawed((prevResults) => ({
+      ...prevResults,
+      [obfRecord]: alreadyWithdrawedRes,
     }));
   };
 
@@ -242,6 +254,20 @@ const AccountBalance = () => {
                       }
                     >
                       Verify Credit
+                    </button>
+                    <button
+                      onClick={() =>
+                        alreadyWithdrawed(aRecord.obfRecord)
+                      }
+                      className={
+                        withdrawed[aRecord.obfRecord] === false
+                          ? "green-button"
+                          : withdrawed[aRecord.obfRecord] === true
+                          ? "red-button"
+                          : ""
+                      }
+                    >
+                      Available
                     </button>
                   </p>
                 </div>

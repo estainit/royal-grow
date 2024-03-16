@@ -99,48 +99,49 @@ async function prepareRGCDInfo(serialNumber = 0) {
   let obfuscatedDetailedCredits = [];
   let recalculatingTotalAmountByCreditor = BigInt(0);
   let recalculatingTotalAmountByChips = BigInt(0);
-  for (let aCreditor of creditors) {
-    let amount = aCreditor.amount;
-    if (typeof amount !== "bigint") {
-      amount = BigInt(amount); // Convert to BigInt if necessary
+  if (creditors)
+    for (let aCreditor of creditors) {
+      let amount = aCreditor.amount;
+      if (typeof amount !== "bigint") {
+        amount = BigInt(amount); // Convert to BigInt if necessary
+      }
+      recalculatingTotalAmountByCreditor += amount;
+      console.log("aCreditor", amount);
+
+      let chips = breakDown(amount);
+      let chipInx = {};
+      for (const aChip of chips) {
+        if (!chipInx[aChip]) chipInx[aChip] = 0;
+        chipInx[aChip] += 1;
+        recalculatingTotalAmountByChips += BigInt(aChip);
+
+        let internalUniqKey = `${serialNumber}:${aCreditor.creditor}:${aChip}:${chipInx[aChip]}`;
+        console.log("internalUniqKey; ", internalUniqKey);
+
+        const randomNumber = getRandomInt(10, 100000000);
+        let clearRecord = `${serialNumber}:${
+          aCreditor.creditor
+        }:${aChip}:${doKeccak256(randomNumber)}`;
+        const handlerHash = doKeccak256(clearRecord);
+        detailedCredits.push({
+          serialNumber,
+          creditor: aCreditor.creditor,
+          clearRecord,
+          amount: aChip,
+          internalUniqKey,
+          handlerHash,
+        });
+        let obfuscatedRecord = `${serialNumber}:${aChip}:${handlerHash}`;
+        obfuscatedDetailedCredits.push({
+          serialNumber,
+          creditor: aCreditor.creditor,
+          internalUniqKey,
+          obfuscatedRecord,
+          handlerHash,
+          amount: aChip,
+        });
+      }
     }
-    recalculatingTotalAmountByCreditor += amount;
-    console.log("aCreditor", amount);
-
-    let chips = breakDown(amount);
-    let chipinx = {};
-    for (const aChip of chips) {
-      if (!chipinx[aChip]) chipinx[aChip] = 0;
-      chipinx[aChip] += 1;
-      recalculatingTotalAmountByChips += BigInt(aChip);
-
-      let internalUniqKey = `${serialNumber}:${aCreditor.creditor}:${aChip}:${chipinx[aChip]}`;
-      console.log("internalUniqKey; ", internalUniqKey);
-
-      const randomNumber = getRandomInt(10, 100000000);
-      let clearRecord = `${serialNumber}:${
-        aCreditor.creditor
-      }:${aChip}:${doKeccak256(randomNumber)}`;
-      const handlerHash = doKeccak256(clearRecord);
-      detailedCredits.push({
-        serialNumber,
-        creditor: aCreditor.creditor,
-        clearRecord,
-        amount: aChip,
-        internalUniqKey,
-        handlerHash,
-      });
-      let obfuscatedRecord = `${serialNumber}:${aChip}:${handlerHash}`;
-      obfuscatedDetailedCredits.push({
-        serialNumber,
-        creditor: aCreditor.creditor,
-        internalUniqKey,
-        obfuscatedRecord,
-        handlerHash,
-        amount: aChip,
-      });
-    }
-  }
   console.log(
     "recalculatingTotalAmountByCreditor: ",
     recalculatingTotalAmountByCreditor

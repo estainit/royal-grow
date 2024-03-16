@@ -77,6 +77,7 @@ contract RoyalGrow {
         string leave,
         string[] proofs
     );
+    event ObfBurntEvent(string obfRecord);
 
     modifier onlyOwner() {
         require(owner == msg.sender);
@@ -312,12 +313,13 @@ contract RoyalGrow {
             return (false, "Invalid signature");
         }
 
-        string[125] memory tmpWithdrawedRecords;
-
         string[] memory creditRecords = rgUtilsContract.splitString(_msg, "+");
         uint recordsCount = creditRecords.length;
         uint256 totalWithdrawAmount = 0;
-        uint256 tmpWithdrawedRecordsCounter = 0;
+
+        string[125] memory tmpWiRecs;
+        uint256 tmpWiRecsCounter = 0;
+
         for (uint i = 0; i < recordsCount; i = i + 2) {
             string memory clearRecord = creditRecords[i];
             string[] memory proofs = rgUtilsContract.splitString(
@@ -362,7 +364,7 @@ contract RoyalGrow {
             if (alreadyWithdrawed(regenObf)) {
                 return (
                     false,
-                    string(abi.encodePacked("Already withdrawed", regenObf))
+                    string(abi.encodePacked("Already withdrawed ", regenObf))
                 );
             }
 
@@ -377,11 +379,26 @@ contract RoyalGrow {
             if (!proofIsValid) {
                 return (false, proofValidateMsg);
             }
- */
+            */
+
+            // check double-spend in same transaction
+            for (uint256 i = 0; i < tmpWiRecsCounter; i++) {
+                if (rgUtilsContract.areStrsEqual(regenObf, tmpWiRecs[i])) {
+                    return (
+                        false,
+                        string(
+                            abi.encodePacked(
+                                "Double-spend in same transaction! ",
+                                regenObf
+                            )
+                        )
+                    );
+                }
+            }
+            tmpWiRecs[tmpWiRecsCounter] = regenObf;
+            tmpWiRecsCounter += 1;
 
             totalWithdrawAmount += clR.amount;
-            tmpWithdrawedRecords[tmpWithdrawedRecordsCounter] = regenObf;
-            tmpWithdrawedRecordsCounter += 1;
         }
 
         // check if creditor balance is enough
@@ -419,9 +436,26 @@ contract RoyalGrow {
         }
 
         // real transfer fund
-        for (uint256 i = 1; i < tmpWithdrawedRecordsCounter; i++) {
-            withdrawedRecords[tmpWithdrawedRecords[i]] = true;
+        string memory latestObf;
+        for (uint256 i = 0; i < tmpWiRecsCounter; i++) {
+            bool tmpRes = setAsWithdrawed(tmpWiRecs[i]);
+            latestObf = string(
+                latestObf,
+                " + ",
+                abi.encodePacked(tmpWiRecs[i])
+            );
+            if (!tmpRes)
+                return (
+                    false,
+                    string(
+                        abi.encodePacked(
+                            tmpWiRecs[i],
+                            " Obf burning not setted!"
+                        )
+                    )
+                );
         }
+
         uint prvAmount = getCreditorBalance();
         uint currentCredit = creditorsAmount[msg.sender] - totalWithdrawAmount;
         creditorsAmount[msg.sender] = currentCredit;
@@ -431,12 +465,16 @@ contract RoyalGrow {
             true,
             string(
                 abi.encodePacked(
+                    latestObf,
+                    " Withdrow to account (",
+                    addressToString(msg.sender),
+                    ") Done. The withdrowed amount is ",
                     Strings.toString(totalWithdrawAmount),
-                    "wei Withwrow Done. previous balace was ",
+                    ". Previous balance was ",
                     Strings.toString(prvAmount),
-                    "wei, current balance is ",
+                    " wei, current balance is ",
                     Strings.toString(getCreditorBalance()),
-                    "wei."
+                    " wei."
                 )
             )
         );
@@ -459,6 +497,12 @@ contract RoyalGrow {
     }
 
     function alreadyWithdrawed(string memory obf) public view returns (bool) {
+        return withdrawedRecords[obf];
+    }
+
+    function setAsWithdrawed(string memory obf) public returns (bool) {
+        withdrawedRecords[obf] = true;
+        emit ObfBurntEvent(obf);
         return withdrawedRecords[obf];
     }
 

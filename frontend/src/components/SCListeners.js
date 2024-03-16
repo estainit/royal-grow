@@ -14,7 +14,7 @@ const SCListeners = () => {
     if (msgType === "err") {
     }
     setTimeout(() => setIsVisible(true), 200);
-    setLogContent(msg);
+    setLogContent(logContent + " " + msg);
     setTimeout(() => setIsVisible(false), 15000);
   };
 
@@ -52,7 +52,26 @@ const SCListeners = () => {
       console.log(msg);
     };
 
+    const handleObfBurntEvent = (event) => {
+      let msg = `Obf Burnt Event by ${event.returnValues.sender}
+      Burnt Obf Record (${event.returnValues.obfRecord}) 
+      `;
+      dspEvent(msg);
+      console.log(msg);
+    };
+
     const subscribeToEvent = async () => {
+      
+      const subsObfBurntEvent =
+        await globData.royalGrowcontractInstance.events.ObfBurntEvent({
+          fromBlock: "latest",
+        });
+      console.log("Invalid DC Prof Event is registered!");
+      subsObfBurntEvent.on("data", (event) => {
+        handleObfBurntEvent(event);
+      });
+      subsObfBurntEvent.on("error", dspEvent(console.error, "err"));
+
       const subsInvalidDCProfEvent =
         await globData.royalGrowcontractInstance.events.InvalidDCProfEvent({
           fromBlock: "latest",
