@@ -458,8 +458,8 @@ contract RoyalGrow {
 
         uint prvAmount = getCreditorBalance();
         uint currentCredit = creditorsAmount[msg.sender] - totalWithdrawAmount;
-        creditorsAmount[msg.sender] = currentCredit;
-        payable(msg.sender).transfer(totalWithdrawAmount);
+        creditorsAmount[msg.sender] = currentCredit;// FIXME: it looks does not work properly
+        payable(msg.sender).transfer(totalWithdrawAmount);// FIXME: it looks does not work properly
 
         return (
             true,
@@ -497,10 +497,12 @@ contract RoyalGrow {
     }
 
     function alreadyWithdrawed(string memory obf) public view returns (bool) {
+        // FIXME: it looks does not work properly
         return withdrawedRecords[obf];
     }
 
     function setAsWithdrawed(string memory obf) public returns (bool) {
+        // FIXME: it looks does not work properly
         withdrawedRecords[obf] = true;
         emit ObfBurntEvent(obf);
         return withdrawedRecords[obf];
