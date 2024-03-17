@@ -4,11 +4,10 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract MessageVerifier {
     function isValidSignature(
-        string memory _msg,
+        bytes32 messageHash,
         bytes memory signature,
         address signer
     ) public pure returns (bool) {
-        bytes32 messageHash = keccak256(abi.encodePacked("withdraw", _msg));
         bytes32 ethSignedMessageHash = getEthSignedMessageHash4(messageHash);
         address tmpSigner = recoverSigner4(ethSignedMessageHash, signature);
         return (tmpSigner == signer);

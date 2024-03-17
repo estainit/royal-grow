@@ -49,6 +49,12 @@ contract RoyalGrow {
         string salt;
     }
 
+    struct WithDrawState {
+        string[] records;
+        uint256 recordCounter;
+        uint256 total;
+    }
+
     uint dcSerialNumber;
     mapping(uint => bytes8) public dcMerkleRoots;
 
@@ -305,15 +311,22 @@ contract RoyalGrow {
         }
 
         // check the signatur of clear record
-        if (!verifierContract.isValidSignature(_msg, signature, msg.sender)) {
+        if (
+            !verifierContract.isValidSignature(
+                keccak256(abi.encodePacked("withdraw", _msg)),
+                signature,
+                msg.sender
+            )
+        ) {
             return (false, "Invalid signature");
         }
 
         string[] memory creditRecords = rgUtilsContract.splitString(_msg, "+");
-        uint256 totalWithdrawAmount = 0;
 
-        string[125] memory tmpWiRecs;
-        uint256 tmpWiRecsCounter = 0;
+        WithDrawState memory wStat;
+        wStat.records = new string[](128);
+        wStat.recordCounter = 0;
+        wStat.total = 0;
 
         for (uint i = 0; i < creditRecords.length; i = i + 2) {
             string[] memory proofs = rgUtilsContract.splitString(
@@ -372,8 +385,10 @@ contract RoyalGrow {
                 return (false, proofValidateMsg);
             }
             // check double-spend in same transaction
-            for (uint256 j = 0; j < tmpWiRecsCounter; j++) {
-                if (rgUtilsContract.areStrsEqual(regenObf, tmpWiRecs[j])) {
+            for (uint256 j = 0; j < wStat.recordCounter; j++) {
+                if (
+                    rgUtilsContract.areStrsEqual(regenObf, wStat.records[j])
+                ) {
                     return (
                         false,
                         string(
@@ -385,14 +400,14 @@ contract RoyalGrow {
                     );
                 }
             }
-            tmpWiRecs[tmpWiRecsCounter] = regenObf;
-            tmpWiRecsCounter += 1;
+            wStat.records[wStat.recordCounter] = regenObf;
+            wStat.recordCounter += 1;
 
-            totalWithdrawAmount += clR.amount;
+            wStat.total += clR.amount;
         }
 
         // check if creditor balance is enough
-        if (getCreditorBalance() < totalWithdrawAmount) {
+        if (getCreditorBalance() < wStat.total) {
             return (
                 false,
                 string(
@@ -402,7 +417,7 @@ contract RoyalGrow {
                         ") ",
                         Strings.toString(getCreditorBalance()),
                         " < ",
-                        Strings.toString(totalWithdrawAmount),
+                        Strings.toString(wStat.total),
                         " Requested amount"
                     )
                 )
@@ -410,7 +425,7 @@ contract RoyalGrow {
         }
 
         // check if withdraw amount coincides records sum
-        if (_amount != totalWithdrawAmount) {
+        if (_amount != wStat.total) {
             return (
                 false,
                 string(
@@ -418,7 +433,7 @@ contract RoyalGrow {
                         "Discrepancy in withdraw amount(",
                         Strings.toString(_amount),
                         ") and records sum(",
-                        Strings.toString(totalWithdrawAmount),
+                        Strings.toString(wStat.total),
                         ") "
                     )
                 )
@@ -427,17 +442,17 @@ contract RoyalGrow {
 
         // real transfer fund
         string memory latestObf;
-        for (uint256 i = 0; i < tmpWiRecsCounter; i++) {
-            bool tmpRes = setAsWithdrawed(tmpWiRecs[i]);
+        for (uint256 i = 0; i < wStat.recordCounter; i++) {
+            bool tmpRes = setAsWithdrawed(wStat.records[i]);
             latestObf = string(
-                abi.encodePacked(latestObf, " + ", tmpWiRecs[i])
+                abi.encodePacked(latestObf, " + ", wStat.records[i])
             );
             if (!tmpRes)
                 return (
                     false,
                     string(
                         abi.encodePacked(
-                            tmpWiRecs[i],
+                            wStat.records[i],
                             " Obf burning not setted!"
                         )
                     )
@@ -445,9 +460,9 @@ contract RoyalGrow {
         }
 
         uint prvAmount = getCreditorBalance();
-        uint currentCredit = creditorsAmount[msg.sender] - totalWithdrawAmount;
+        uint currentCredit = creditorsAmount[msg.sender] - wStat.total;
         creditorsAmount[msg.sender] = currentCredit; // FIXME: it looks does not work properly
-        payable(msg.sender).transfer(totalWithdrawAmount); // FIXME: it looks does not work properly
+        payable(msg.sender).transfer(wStat.total); // FIXME: it looks does not work properly
 
         return (
             true,
@@ -457,7 +472,7 @@ contract RoyalGrow {
                     " Withdrow to account (",
                     addressToString(msg.sender),
                     ") Done. The withdrowed amount is ",
-                    Strings.toString(totalWithdrawAmount),
+                    Strings.toString(wStat.total),
                     ". Previous balance was ",
                     Strings.toString(prvAmount),
                     " wei, current balance is ",
