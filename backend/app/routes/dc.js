@@ -9,12 +9,12 @@ const {
 } = require("../entity/rg_detailed_credits_obfuscated_profile");
 
 router.get("/getRGCredit", async (req, res) => {
-  const rgCredit = await getRGCredit(req.query.creditor);
+  const { rowId, currentBalance } = await getRGCredit(req.query.creditor.toLowerCase());
 
   res.status(200).json({
-    data: { rgCredit },
+    data: { currentBalance },
     message: "RG Credit fetcehd successfully",
-    success: true,
+    success: rowId ? true : false,
   });
 });
 

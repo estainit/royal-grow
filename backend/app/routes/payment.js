@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { doTransferFund } = require("../modules/contract-pay");
+const { getRGCredit, upsertCredit } = require("../entity/rg_balances");
 
 const {
   payToContract,
@@ -10,16 +11,26 @@ const {
 
 router.post("/payToContract", async (req, res) => {
   console.log("payToContract", req.body);
-  const resData = await payToContract(
-    req.body.sender,
-    req.body.amount,
-    req.body.uniqueId
-  );
+  const creditor = req.body.sender.toLowerCase();;
+  const amount = req.body.amount;
+  const insertRes = await payToContract(creditor, amount, req.body.uniqueId);
 
+  let upsRes = false;
+  if (insertRes && insertRes.rows) {
+    // update rg_balances
+    const {_, currentBalance} = await getRGCredit(creditor);
+    console.log("...currentCredit", currentBalance);
+    const newCredit = BigInt(currentBalance) + BigInt(amount);
+    console.log("...newCredit", newCredit);
+    upsRes = await upsertCredit(creditor, newCredit);
+  }
+  const msg = upsRes
+    ? "Payment received successfully"
+    : "Something went rong on update your balance!";
   res.status(200).json({
-    data: resData,
-    message: "Payment received successfully",
-    success: true,
+    data: insertRes,
+    message: msg,
+    success: upsRes,
   });
 });
 

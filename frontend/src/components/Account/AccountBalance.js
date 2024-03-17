@@ -51,14 +51,16 @@ const AccountBalance = () => {
     const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(
       globData
     );
-    setSelectedAccount(selectedAccount_.address);
-
+    const theAddress = selectedAccount_.address.toLowerCase();
+    setSelectedAccount(theAddress);
+    console.log("fetch RG Credit for ", theAddress);
     const paymentInfo = await getFromBE("dc/getRGCredit", {
-      creditor: selectedAccount_.address,
+      creditor: theAddress,
     });
 
     let rgCredit = 0;
-    if (paymentInfo.data.rgCredit) rgCredit = paymentInfo.data.rgCredit;
+    if (paymentInfo.data.currentBalance)
+      rgCredit = paymentInfo.data.currentBalance;
     setRgCredit(weiToEther(rgCredit));
   };
 
@@ -256,9 +258,7 @@ const AccountBalance = () => {
                       Verify Credit
                     </button>
                     <button
-                      onClick={() =>
-                        alreadyWithdrawed(aRecord.obfRecord)
-                      }
+                      onClick={() => alreadyWithdrawed(aRecord.obfRecord)}
                       className={
                         withdrawed[aRecord.obfRecord] === false
                           ? "green-button"

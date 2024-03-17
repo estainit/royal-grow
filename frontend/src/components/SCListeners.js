@@ -26,10 +26,11 @@ const SCListeners = () => {
         event.returnValues.amount,
         "ether"
       )} Eth ID: ${event.returnValues.uniqueId}`;
+      console.log(msg);
       dspEvent(msg);
 
       postToBE("payment/payToContract", {
-        sender: event.returnValues.sender,
+        sender: String(event.returnValues.sender).toLowerCase(),
         amount: String(event.returnValues.amount),
         uniqueId: String(event.returnValues.uniqueId),
       });
@@ -61,7 +62,6 @@ const SCListeners = () => {
     };
 
     const subscribeToEvent = async () => {
-
       const subsObfBurntEvent =
         await globData.royalGrowcontractInstance.events.ObfBurntEvent({
           fromBlock: "latest",

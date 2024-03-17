@@ -99,7 +99,10 @@ contract RoyalGrow {
         contractState = State.Running;
 
         dcSerialNumber = 0;
-        //emit PayToContractEvent(msg.sender, msg.value);
+        if (msg.value && (msg.value > 0)) {
+            uint256 uniqueId = rgUtilsContract.generateUniqueId();
+            emit PayToContractEvent(msg.sender, msg.value, uniqueId);
+        }
     }
 
     receive() external payable {
@@ -440,9 +443,7 @@ contract RoyalGrow {
         for (uint256 i = 0; i < tmpWiRecsCounter; i++) {
             bool tmpRes = setAsWithdrawed(tmpWiRecs[i]);
             latestObf = string(
-                latestObf,
-                " + ",
-                abi.encodePacked(tmpWiRecs[i])
+                abi.encodePacked(latestObf, " + ", tmpWiRecs[i])
             );
             if (!tmpRes)
                 return (
@@ -458,8 +459,8 @@ contract RoyalGrow {
 
         uint prvAmount = getCreditorBalance();
         uint currentCredit = creditorsAmount[msg.sender] - totalWithdrawAmount;
-        creditorsAmount[msg.sender] = currentCredit;// FIXME: it looks does not work properly
-        payable(msg.sender).transfer(totalWithdrawAmount);// FIXME: it looks does not work properly
+        creditorsAmount[msg.sender] = currentCredit; // FIXME: it looks does not work properly
+        payable(msg.sender).transfer(totalWithdrawAmount); // FIXME: it looks does not work properly
 
         return (
             true,

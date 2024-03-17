@@ -35,31 +35,52 @@ async function getSumAllCreditors() {
 async function getRGCredit(creditor) {
   try {
     const query = `
-        SELECT amount FROM rg_balances WHERE creditor = $1;
+        SELECT id, amount FROM rg_balances WHERE creditor = $1;
       `;
     const values = [creditor];
     const result = await dbPool.query(query, values);
-    if (result.rows.length > 0) return parseInt(result.rows[0].amount);
-    return 0;
+    if (result.rows.length > 0) {
+      const resu = {
+        rowId: result.rows[0].id,
+        currentBalance: parseInt(result.rows[0].amount),
+      };
+      console.log("+++++++ resu", resu);
+      return resu;
+    }
+
+    return {
+      id: null,
+      currentBalance: 0,
+    };
   } catch (err) {
     console.error("Error get RGCredit:", err);
     //throw err; // Re-throw the error for handling in the calling code
-    return 0;
+    return {
+      id: null,
+      currentBalance: 0,
+    };
   }
 }
 
 async function upsertCredit(creditor, amount) {
   try {
-    const query = `
-          INSERT INTO 
-          rg_balances (creditor, amount)
-          VALUES ($1, $2)
-          ON CONFLICT (id)
-          DO UPDATE SET amount = EXCLUDED.amount;
-        `;
-    const values = [creditor, amount];
-    console.log("Upserting payment values", values);
-    await dbPool.query(query, values);
+    const { rowId, _ } = await getRGCredit(creditor);
+    if (rowId) {
+      updateCredit(creditor, amount);
+    } else {
+      insertCredit(creditor, amount);
+    }
+
+    // const query = `
+    //       INSERT INTO
+    //       rg_balances (creditor, amount)
+    //       VALUES ($1, $2)
+    //       ON CONFLICT (id)
+    //       DO UPDATE SET amount = EXCLUDED.amount;
+    //     `;
+    // const values = [creditor, amount];
+    // console.log("Upserting payment values", values);
+    // await dbPool.query(query, values);
     return true;
   } catch (err) {
     console.error("Error upserting payment:", err);
@@ -88,7 +109,7 @@ async function insertCredit(creditor, amount) {
   try {
     const query = `
           INSERT INTO rg_balances (creditor, amount, update_time)
-          VALUES ($1, $2, $3, $4)
+          VALUES ($1, $2, $3)
           RETURNING *;
         `;
     const payment_time = new Date().toISOString();

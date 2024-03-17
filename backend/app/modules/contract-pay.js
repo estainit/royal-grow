@@ -54,9 +54,9 @@ async function doTransferFund(
     }
 
     // if sender has enough fund
-    const signerCredit = await getRGCredit(signerAddress);
-    console.log(" ......... signer current Credit:", signerCredit);
-    if (!signerCredit || signerCredit < 1 || signerCredit < amount) {
+    const {_, currentBalance} = await getRGCredit(signerAddress);
+    console.log(" ......... signer current Credit:", currentBalance);
+    if (!currentBalance || currentBalance < 1 || currentBalance < amount) {
       return {
         stat: false,
         msg: "Insuficient fund!",
@@ -64,7 +64,7 @@ async function doTransferFund(
     }
 
     // decrease signer/sender credit
-    await updateCredit(signerAddress, signerCredit - amount);
+    await updateCredit(signerAddress, currentBalance - amount);
 
     // increase/create reciever cradit
     await upsertCredit(recipientAddress, amount);   // test address 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65

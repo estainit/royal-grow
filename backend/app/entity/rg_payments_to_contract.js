@@ -3,7 +3,7 @@ const dbPool = require("../db-pool");
 async function payToContract(sender, amount, uniqueId) {
   const ifExist = await doesExist(uniqueId);
   if (ifExist) {
-    return {};
+    return null;
   }
   return await insertPayment(sender, amount, uniqueId);
 }
@@ -17,9 +17,10 @@ async function insertPayment(payer, amount, uniqueId) {
     `;
     const payment_time = new Date().toISOString(); // Returns an ISO 8601 formatted string
     const values = [payer, amount, uniqueId, payment_time];
-    const result = await dbPool.query(query, values);
+    await dbPool.query(query, values);
   } catch (err) {
     console.error("Error inserting payment:", err);
+    return null;
   }
   return await getPaymentByUniqueId(uniqueId);
 }

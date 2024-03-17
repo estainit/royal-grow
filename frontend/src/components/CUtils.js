@@ -32,7 +32,7 @@ export const etherToWei = (ethAmount) => {
 };
 
 export const weiToEther = (weiAmount) => {
-  const etherValue = parseFloat(weiAmount) / 1e18; // Divide by 1e18 (1 followed by 18 zeros)
+  const etherValue = parseInt(weiAmount) / 1e18; // Divide by 1e18 (1 followed by 18 zeros)
   return etherValue.toFixed(4); // Format to 4 decimal places (adjust as needed)
 };
 
