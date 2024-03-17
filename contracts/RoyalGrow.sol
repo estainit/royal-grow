@@ -99,7 +99,7 @@ contract RoyalGrow {
         contractState = State.Running;
 
         dcSerialNumber = 0;
-        if (msg.value && (msg.value > 0)) {
+        if (msg.value > 0) {
             uint256 uniqueId = rgUtilsContract.generateUniqueId();
             emit PayToContractEvent(msg.sender, msg.value, uniqueId);
         }
@@ -164,7 +164,7 @@ contract RoyalGrow {
     function validateDCCredit(
         string calldata clearRecord,
         string[] calldata proofs
-    ) public returns (bool, string memory) {
+    ) public view returns (bool, string memory) {
         ClearRecord memory clR = parseClearRecord(clearRecord);
         string memory hashedClearData = rgUtilsContract.doKeccak256(
             clearRecord
@@ -305,32 +305,23 @@ contract RoyalGrow {
         }
 
         // check the signatur of clear record
-        bytes32 messageHash = keccak256(abi.encodePacked("withdraw", _msg));
-        bytes32 ethSignedMessageHash = verifierContract
-            .getEthSignedMessageHash4(messageHash);
-        address tmpSigner = verifierContract.recoverSigner4(
-            ethSignedMessageHash,
-            signature
-        );
-        if (tmpSigner != msg.sender) {
+        if (!verifierContract.isValidSignature(_msg, signature, msg.sender)) {
             return (false, "Invalid signature");
         }
 
         string[] memory creditRecords = rgUtilsContract.splitString(_msg, "+");
-        uint recordsCount = creditRecords.length;
         uint256 totalWithdrawAmount = 0;
 
         string[125] memory tmpWiRecs;
         uint256 tmpWiRecsCounter = 0;
 
-        for (uint i = 0; i < recordsCount; i = i + 2) {
-            string memory clearRecord = creditRecords[i];
+        for (uint i = 0; i < creditRecords.length; i = i + 2) {
             string[] memory proofs = rgUtilsContract.splitString(
                 creditRecords[i + 1],
                 ","
             );
 
-            ClearRecord memory clR = parseClearRecord(clearRecord);
+            ClearRecord memory clR = parseClearRecord(creditRecords[i]);
 
             // check if signer is equal to creditor(the address in clear record)
             if (
@@ -360,7 +351,7 @@ contract RoyalGrow {
                     ":",
                     Strings.toString(clR.amount),
                     ":",
-                    rgUtilsContract.doKeccak256(clearRecord)
+                    rgUtilsContract.doKeccak256(creditRecords[i])
                 )
             );
 
@@ -371,9 +362,7 @@ contract RoyalGrow {
                 );
             }
 
-            /**
-             * 
-            FIXME: this checks MUST be activated ASAP
+            //FIXME: this checks MUST be activated ASAP
             // check if given proof is correct
             (
                 bool proofIsValid,
@@ -382,11 +371,9 @@ contract RoyalGrow {
             if (!proofIsValid) {
                 return (false, proofValidateMsg);
             }
-            */
-
             // check double-spend in same transaction
-            for (uint256 i = 0; i < tmpWiRecsCounter; i++) {
-                if (rgUtilsContract.areStrsEqual(regenObf, tmpWiRecs[i])) {
+            for (uint256 j = 0; j < tmpWiRecsCounter; j++) {
+                if (rgUtilsContract.areStrsEqual(regenObf, tmpWiRecs[j])) {
                     return (
                         false,
                         string(
@@ -534,10 +521,15 @@ contract RoyalGrow {
  */
 
     function withdraw(
-        string calldata _msg, // a string of comma seperated records
-        uint256 _amount,
-        string calldata _sig
-    ) external returns (bool) {
+        //string calldata _msg, // a string of comma seperated records
+        uint256 _amount
+    )
+        external
+        returns (
+            //string calldata _sig
+            bool
+        )
+    {
         uint8 stage = 0;
         emit WithdrawalEvent(msg.sender, _amount, block.timestamp, stage);
 

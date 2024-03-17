@@ -3,6 +3,17 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract MessageVerifier {
+    function isValidSignature(
+        string memory _msg,
+        bytes memory signature,
+        address signer
+    ) public pure returns (bool) {
+        bytes32 messageHash = keccak256(abi.encodePacked("withdraw", _msg));
+        bytes32 ethSignedMessageHash = getEthSignedMessageHash4(messageHash);
+        address tmpSigner = recoverSigner4(ethSignedMessageHash, signature);
+        return (tmpSigner == signer);
+    }
+
     // Function to verify a message signature
     function verifySignature(
         string memory message,
@@ -14,16 +25,18 @@ contract MessageVerifier {
             abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
         );
 
-        address recoveredSigner = recoverSigner(ethSignedMessageHash, signature);
+        address recoveredSigner = recoverSigner(
+            ethSignedMessageHash,
+            signature
+        );
         return recoveredSigner == signer;
     }
 
     // Function to recover signer from signature
-    function recoverSigner(bytes32 hash, bytes memory signature)
-        public
-        pure
-        returns (address)
-    {
+    function recoverSigner(
+        bytes32 hash,
+        bytes memory signature
+    ) public pure returns (address) {
         require(signature.length == 65, "Invalid signature length");
 
         bytes32 r;
@@ -48,8 +61,6 @@ contract MessageVerifier {
         return ecrecover(hash, v, r, s);
     }
 
-
-    
     function getEthSignedMessageHash4(
         bytes32 _messageHash
     ) public pure returns (bytes32) {
@@ -100,5 +111,4 @@ contract MessageVerifier {
 
         // implicitly return (r, s, v)
     }
-    
 }

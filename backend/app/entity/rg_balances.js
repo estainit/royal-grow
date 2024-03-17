@@ -44,7 +44,6 @@ async function getRGCredit(creditor) {
         rowId: result.rows[0].id,
         currentBalance: parseInt(result.rows[0].amount),
       };
-      console.log("+++++++ resu", resu);
       return resu;
     }
 

@@ -118,6 +118,7 @@ function customSerializeProofs(proofs) {
 
 async function prepareRGCDInfo(serialNumber = 0) {
   let creditorsSum = await getSumAllCreditors();
+  console.log("creditors Sum", creditorsSum);
   let creditors = await getAllCreditors();
   console.log("creditors", creditors);
   let detailedCredits = [];
@@ -168,11 +169,11 @@ async function prepareRGCDInfo(serialNumber = 0) {
       }
     }
   console.log(
-    "recalculatingTotalAmountByCreditor: ",
+    "recalculated Total Amount By Creditor: ",
     recalculatingTotalAmountByCreditor
   );
   console.log(
-    "recalculatingTotalAmountByChips: ",
+    "recalculated Total Amount By Chips: ",
     recalculatingTotalAmountByChips
   );
   console.log("detailedCredits: ", detailedCredits.length, detailedCredits);
