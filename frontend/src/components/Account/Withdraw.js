@@ -15,6 +15,7 @@ const Withdraw = () => {
 
   const [message, setMessage] = useState("");
   const [amount, setAmount] = useState(0);
+  const [withdrowedIndex, setWithdrowedIndex] = useState(0);
 
   function hexStringToBytes(hexString) {
     // Remove '0x' prefix if present
@@ -34,6 +35,20 @@ const Withdraw = () => {
     // Return the resulting byte array
     return bytes;
   }
+
+  const getWithdrowedByIndex = async () => {
+    const tx = await globData.royalGrowcontractInstance.methods
+      .getWithdrawedInfoByIndex(withdrowedIndex)
+      .call();
+    console.log("get Withdrowed By Index res:", tx);
+  };
+
+  const resetWithdrawed = async () => {
+    const tx = await globData.royalGrowcontractInstance.methods
+      .resetWithdrawed()
+      .call();
+    console.log("reset Withdrawed res:", tx);
+  };
 
   const handleWithdraw = async () => {
     if (!globData.web3 || !message || !amount) {
@@ -149,19 +164,31 @@ const Withdraw = () => {
 
   return (
     <div className="withdrow-fund">
-      <input
-        type="text"
-        placeholder="Enter message"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Enter amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      />
-      <button onClick={handleWithdraw}>Withdraw</button>
+      <div>
+        <input
+          type="text"
+          placeholder="Enter message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Enter amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <button onClick={handleWithdraw}>Withdraw</button>
+      </div>
+      <div>
+        <input
+          type="text"
+          placeholder="Enter index"
+          value={withdrowedIndex}
+          onChange={(e) => setWithdrowedIndex(e.target.value)}
+        />
+        <button onClick={getWithdrowedByIndex}>Withdraw info</button>
+        <button onClick={resetWithdrawed}>reset Withdrawed</button>
+      </div>
     </div>
   );
 };

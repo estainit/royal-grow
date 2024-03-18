@@ -58,7 +58,10 @@ contract RoyalGrow {
     uint dcSerialNumber;
     mapping(uint => bytes8) public dcMerkleRoots;
 
-    mapping(string => bool) public withdrawedRecords;
+    string[] public withdrawedRecords;
+    uint256 public withdrawedRecordsCounter;
+    uint256 public maxWRecCounter;
+    // mapping(string => bool) public withdrawedRecords;
 
     mapping(address => uint) public creditorsAmount;
     mapping(address => uint) public creditorsUpdate;
@@ -109,6 +112,9 @@ contract RoyalGrow {
             uint256 uniqueId = rgUtilsContract.generateUniqueId();
             emit PayToContractEvent(msg.sender, msg.value, uniqueId);
         }
+
+        withdrawedRecordsCounter = 0;
+        maxWRecCounter = 0;
     }
 
     receive() external payable {
@@ -386,9 +392,7 @@ contract RoyalGrow {
             }
             // check double-spend in same transaction
             for (uint256 j = 0; j < wStat.recordCounter; j++) {
-                if (
-                    rgUtilsContract.areStrsEqual(regenObf, wStat.records[j])
-                ) {
+                if (rgUtilsContract.areStrsEqual(regenObf, wStat.records[j])) {
                     return (
                         false,
                         string(
@@ -483,14 +487,39 @@ contract RoyalGrow {
 
     function alreadyWithdrawed(string memory obf) public view returns (bool) {
         // FIXME: it looks does not work properly
-        return withdrawedRecords[obf];
+        for (uint256 i = 0; i < withdrawedRecordsCounter; i++) {
+            if (rgUtilsContract.areStrsEqual(withdrawedRecords[i], obf))
+                return true;
+        }
+
+        return false; //withdrawedRecords[obf];
     }
 
     function setAsWithdrawed(string memory obf) public returns (bool) {
         // FIXME: it looks does not work properly
-        withdrawedRecords[obf] = true;
+        if (withdrawedRecordsCounter < maxWRecCounter) {
+            withdrawedRecords[withdrawedRecordsCounter] = obf;
+        } else {
+            withdrawedRecords.push(obf);
+        }
+        withdrawedRecordsCounter = withdrawedRecordsCounter+1;
         emit ObfBurntEvent(obf);
-        return withdrawedRecords[obf];
+        return alreadyWithdrawed(obf);
+    }
+
+    function resetWithdrawed() public returns (uint256, uint256) {
+        if (maxWRecCounter < withdrawedRecordsCounter)
+            maxWRecCounter = withdrawedRecordsCounter;
+        uint256 currentCounter = withdrawedRecordsCounter;
+        withdrawedRecordsCounter = 0;
+        return (maxWRecCounter, currentCounter);
+    }
+
+    function getWithdrawedInfoByIndex(
+        uint256 inx
+    ) public view returns (string memory obf) {
+        if (inx < withdrawedRecordsCounter) return withdrawedRecords[inx];
+        return "Out of range";
     }
 
     /**

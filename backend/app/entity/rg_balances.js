@@ -63,9 +63,9 @@ async function getRGCredit(creditor) {
 
 async function upsertCredit(creditor, amount) {
   try {
-    const { rowId, currentBalance } = await getRGCredit(creditor);
+    const { rowId, _ } = await getRGCredit(creditor);
     if (rowId) {
-      updateCredit(creditor, currentBalance + amount);
+      updateCredit(creditor, amount);
     } else {
       insertCredit(creditor, amount);
     }
