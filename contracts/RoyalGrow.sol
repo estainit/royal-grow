@@ -334,13 +334,13 @@ contract RoyalGrow {
         wStat.recordCounter = 0;
         wStat.total = 0;
 
-        for (uint i = 0; i < creditRecords.length; i = i + 2) {
+        for (uint inx = 0; inx < creditRecords.length; inx = inx + 2) {
             string[] memory proofs = rgUtilsContract.splitString(
-                creditRecords[i + 1],
+                creditRecords[inx + 1],
                 ","
             );
 
-            ClearRecord memory clR = parseClearRecord(creditRecords[i]);
+            ClearRecord memory clR = parseClearRecord(creditRecords[inx]);
 
             // check if signer is equal to creditor(the address in clear record)
             if (
@@ -370,7 +370,7 @@ contract RoyalGrow {
                     ":",
                     Strings.toString(clR.amount),
                     ":",
-                    rgUtilsContract.doKeccak256(creditRecords[i])
+                    rgUtilsContract.doKeccak256(creditRecords[inx])
                 )
             );
 
@@ -502,7 +502,7 @@ contract RoyalGrow {
         } else {
             withdrawedRecords.push(obf);
         }
-        withdrawedRecordsCounter = withdrawedRecordsCounter+1;
+        withdrawedRecordsCounter = withdrawedRecordsCounter + 1;
         emit ObfBurntEvent(obf);
         return alreadyWithdrawed(obf);
     }

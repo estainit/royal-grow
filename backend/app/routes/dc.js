@@ -9,7 +9,9 @@ const {
 } = require("../entity/rg_detailed_credits_obfuscated_profile");
 
 router.get("/getRGCredit", async (req, res) => {
-  const { rowId, currentBalance } = await getRGCredit(req.query.creditor.toLowerCase());
+  const { rowId, currentBalance } = await getRGCredit(
+    req.query.creditor.toLowerCase()
+  );
 
   res.status(200).json({
     data: { currentBalance },
@@ -30,13 +32,35 @@ router.get("/makeFullRGCD", async (req, res) => {
   });
 });
 
+router.get("/getLatestGuaranteeDC", async (req, res) => {
+  const creditor = req.query.creditor.toLowerCase();
+  const serialNumber = req.query.serialNumber;
+
+  const fullDC = await makeFullRGCD(serialNumber, creditor);
+  console.log(fullDC);
+  let clearDC =
+    "withdraw" +
+    fullDC.records
+      .map((obj) => [obj.clearRecord, obj.proofs].join("+"))
+      .join("+");
+
+  res.status(200).json({
+    data: {
+      encryotedDC: Buffer.from(clearDC).toString("base64"),
+      clearDC: clearDC.replace(/\+/g, " +"),
+    },
+    message: "Guarantee DC generated successfully",
+    success: true,
+  });
+});
+
 router.get("/generateRGCD", async (req, res) => {
   let serialNumber = req.query.serialNumber;
   const publicRGCD = await generateRGCD(serialNumber);
 
   res.status(200).json({
     data: { publicRGCD },
-    message: "RG Credit Details generated successfully",
+    message: "RG Details Credit generated successfully",
     success: true,
   });
 });

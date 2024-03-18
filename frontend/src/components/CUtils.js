@@ -143,3 +143,14 @@ export const clearRecordParser = (clearRecord) => {
     salt: clearRecordSegments[3],
   };
 };
+
+export const parseClearRecord = (aRecord) => {
+  // 2:0x14dC79964da2C08b23698B3D3cc7Ca32193d9955:10000:2a2f2198
+  let recordSegments = aRecord.split(":");
+  return {
+    serialNumber: recordSegments[0],
+    creditor: recordSegments[1],
+    amount: parseInt(recordSegments[2]),
+    salt: recordSegments[3],
+  };
+};
