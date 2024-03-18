@@ -6,6 +6,7 @@ import {
   postToBE,
   doKeccak256,
   getWalletSelectedAccountByWalletSigner,
+  etherToWei,
 } from "../CUtils";
 
 function TransferFund() {
@@ -19,7 +20,7 @@ function TransferFund() {
     if (!globData) return;
 
     try {
-      setAmount(parseInt(amount));
+      setAmount(parseFloat(amount));
       const signer = await getWalletSelectedAccountByWalletSigner(globData);
 
       console.log(" ......... signer:", signer);
@@ -30,11 +31,11 @@ function TransferFund() {
       let toBeSignedMessage =
         timestamp +
         "," +
-        signerAddress +
+        signerAddress.toLowerCase() +
         "," +
-        recipientAddress +
+        recipientAddress.toLowerCase() +
         "," +
-        amount +
+        etherToWei(amount) +
         "," +
         textMessage;
       const hashedMessage = doKeccak256(globData, toBeSignedMessage);
@@ -43,28 +44,28 @@ function TransferFund() {
       console.log(" ......... signature:", signature);
 
       // send to backend
-      let transferRes = postToBE("payment/doTransferFund", {
+      let transferRes = await postToBE("payment/doTransferFund", {
         timestamp,
-        sender: signerAddress,
-        amount,
-        recipientAddress,
+        sender: signerAddress.toLowerCase(),
+        amount: etherToWei(amount),
+        recipientAddress: recipientAddress.toLowerCase(),
         textMessage,
         signature,
       });
-
-      // Reset form fields
-      setRecipientAddress("");
-      setAmount(0);
-      setTextMessage("");
     } catch (error) {
       console.error("Error transferring premium:", error);
       alert("Error transferring premium: " + error.message);
+    } finally {
+      // Reset form fields
+      setRecipientAddress("");
+      setAmount(0.0);
+      setTextMessage("");
     }
   };
 
   //const handleTransferx = async () => {
   const setAmount_ = (value) => {
-    setAmount(parseInt(value));
+    setAmount(parseFloat(value));
   };
 
   return (
@@ -75,7 +76,7 @@ function TransferFund() {
         <input
           type="text"
           value={recipientAddress}
-          onChange={(e) => setRecipientAddress(e.target.value)}
+          onChange={(e) => setRecipientAddress(e.target.value.toLowerCase())}
         />
       </label>
       <br />
@@ -85,7 +86,8 @@ function TransferFund() {
           type="number"
           value={amount}
           onChange={(e) => setAmount_(e.target.value)}
-        />
+        />{" "}
+        ETH
       </label>
       <br />
       <label>

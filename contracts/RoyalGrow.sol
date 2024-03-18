@@ -406,24 +406,6 @@ contract RoyalGrow {
             wStat.total += clR.amount;
         }
 
-        // check if creditor balance is enough
-        if (getCreditorBalance() < wStat.total) {
-            return (
-                false,
-                string(
-                    abi.encodePacked(
-                        "Insufficient balance (",
-                        addressToString(msg.sender),
-                        ") ",
-                        Strings.toString(getCreditorBalance()),
-                        " < ",
-                        Strings.toString(wStat.total),
-                        " Requested amount"
-                    )
-                )
-            );
-        }
-
         // check if withdraw amount coincides records sum
         if (_amount != wStat.total) {
             return (

@@ -63,23 +63,12 @@ async function getRGCredit(creditor) {
 
 async function upsertCredit(creditor, amount) {
   try {
-    const { rowId, _ } = await getRGCredit(creditor);
+    const { rowId, currentBalance } = await getRGCredit(creditor);
     if (rowId) {
-      updateCredit(creditor, amount);
+      updateCredit(creditor, currentBalance + amount);
     } else {
       insertCredit(creditor, amount);
     }
-
-    // const query = `
-    //       INSERT INTO
-    //       rg_balances (creditor, amount)
-    //       VALUES ($1, $2)
-    //       ON CONFLICT (id)
-    //       DO UPDATE SET amount = EXCLUDED.amount;
-    //     `;
-    // const values = [creditor, amount];
-    // console.log("Upserting payment values", values);
-    // await dbPool.query(query, values);
     return true;
   } catch (err) {
     console.error("Error upserting payment:", err);

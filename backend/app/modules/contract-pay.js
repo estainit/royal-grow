@@ -29,9 +29,9 @@ async function doTransferFund(
     let toBeSignedMessage =
       timestamp +
       "," +
-      signerAddress +
+      signerAddress.toLowerCase() +
       "," +
-      recipientAddress +
+      recipientAddress.toLowerCase() +
       "," +
       amount +
       "," +
@@ -46,7 +46,11 @@ async function doTransferFund(
     if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
       console.log("Signature is valid.");
     } else {
-      console.log("Signature is not valid.");
+      console.log(
+        "Signature is not valid.",
+        recoveredAddress.toLowerCase(),
+        signerAddress.toLowerCase()
+      );
       return {
         stat: false,
         msg: "Invalid Signature!",
@@ -54,7 +58,7 @@ async function doTransferFund(
     }
 
     // if sender has enough fund
-    const {_, currentBalance} = await getRGCredit(signerAddress);
+    const { _, currentBalance } = await getRGCredit(signerAddress);
     console.log(" ......... signer current Credit:", currentBalance);
     if (!currentBalance || currentBalance < 1 || currentBalance < amount) {
       return {
@@ -67,7 +71,7 @@ async function doTransferFund(
     await updateCredit(signerAddress, currentBalance - amount);
 
     // increase/create reciever cradit
-    await upsertCredit(recipientAddress, amount);   // test address 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65
+    await upsertCredit(recipientAddress, amount); // test address 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65
 
     // log transaction
     await insertTxLog(
@@ -79,10 +83,9 @@ async function doTransferFund(
     );
 
     return {
-        stat: true,
-        msg: "Transaction done.",
-      };
-
+      stat: true,
+      msg: "Transaction done.",
+    };
   } catch (err) {
     console.error("Error in internal transfering fund:", err);
     return false;

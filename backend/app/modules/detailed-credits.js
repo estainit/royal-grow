@@ -52,7 +52,7 @@ async function generateRGCD(serialNumber = 0) {
   const lotteryTicketsLeaves = [];
   const lotteryRevealTicketsLeaves = [];
   const lotteryOracleLeaves = [];
-  const crowFundingLeaves = [];
+  const crowdFundingLeaves = [];
 
   const finalMerkleLeaves = [
     ...docInfoLeaves,
@@ -60,7 +60,7 @@ async function generateRGCD(serialNumber = 0) {
     ...lotteryTicketsLeaves,
     ...lotteryRevealTicketsLeaves,
     ...lotteryOracleLeaves,
-    ...crowFundingLeaves
+    ...crowdFundingLeaves,
   ];
 
   const { root, proofs, version, levels, leaves } =
@@ -118,6 +118,7 @@ function customSerializeProofs(proofs) {
 
 async function prepareRGCDInfo(serialNumber = 0) {
   let creditorsSum = await getSumAllCreditors();
+  if (!creditorsSum) creditorsSum = 0;
   console.log("creditors Sum", creditorsSum);
   let creditors = await getAllCreditors();
   console.log("creditors", creditors);

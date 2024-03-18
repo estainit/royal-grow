@@ -35,7 +35,7 @@ router.post("/payToContract", async (req, res) => {
 });
 
 router.get("/getTotalPaymentsToContract", async (req, res) => {
-  const totalPayment = await getTotalPaymentsToContract(req.query.payer);
+  const totalPayment = await getTotalPaymentsToContract(req.query.payer.toLowerCase());
 
   res.status(200).json({
     data: { totalPayment },
@@ -47,9 +47,9 @@ router.get("/getTotalPaymentsToContract", async (req, res) => {
 router.post("/doTransferFund", async (req, res) => {
   const data = await doTransferFund(
     req.body.timestamp,
-    req.body.sender,
+    req.body.sender.toLowerCase(),
     req.body.amount,
-    req.body.recipientAddress,
+    req.body.recipientAddress.toLowerCase(),
     req.body.textMessage,
     req.body.signature
   );

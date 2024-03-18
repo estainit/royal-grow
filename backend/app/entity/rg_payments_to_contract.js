@@ -44,7 +44,7 @@ async function getTotalPaymentsToContract(payer) {
     const query = `
       SELECT SUM(amount) FROM rg_payments_to_contract WHERE payer = $1 GROUP BY payer;
     `;
-    const values = [payer];
+    const values = [payer.toLowerCase()];
     const result = await dbPool.query(query, values);
     if (result.rows.length > 0) return result.rows[0].sum;
     return 0;

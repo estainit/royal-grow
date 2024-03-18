@@ -37,7 +37,7 @@ const AccountBalance = () => {
     setSelectedAccount(selectedAccount_.address);
 
     const paymentInfo = await getFromBE("payment/getTotalPaymentsToContract", {
-      payer: selectedAccount_.address,
+      payer: selectedAccount_.address.toLowerCase(),
     });
     console.log("paymentInfo", paymentInfo);
 
