@@ -288,7 +288,16 @@ const AccountBalance = () => {
                         accumulator + parseInt(currentRecord.amount),
                       0
                     )
-                  )}
+                  )}{" "}
+                  wei ={" "}
+                  {weiToEther(
+                    fullDC.records.reduce(
+                      (accumulator, currentRecord) =>
+                        accumulator + parseInt(currentRecord.amount),
+                      0
+                    )
+                  )}{" "}
+                  ETH
                 </p>
               </div>
               <div className="record-item-label">

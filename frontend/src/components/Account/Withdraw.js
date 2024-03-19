@@ -52,19 +52,19 @@ const Withdraw = () => {
   };
 
   const applyFullWithdraw = async () => {
-    console.log("b64 encoded DC", encryotedDC);
+    // console.log("b64 encoded DC", encryotedDC);
     let decodedString = atob(encryotedDC);
-    console.log("b64 decoded DC", decodedString);
+    // console.log("b64 decoded DC", decodedString);
     let toProcessDecodedString = decodedString.replace("withdraw", "");
     console.log("cleared decoded DC", toProcessDecodedString);
     let records = toProcessDecodedString.split("+");
-    console.log("records DC", records);
+    // console.log("records DC", records);
     let totalAmount = 0;
     for (let inx = 0; inx < records.length; inx = inx + 2) {
       const aClear = records[inx];
       const aProof = records[inx + 1];
-      console.log("aClear DC", aClear);
-      console.log("aProof DC", aProof);
+      // console.log("aClear DC", aClear);
+      // console.log("aProof DC", aProof);
       const recInfo = parseClearRecord(aClear);
       totalAmount += recInfo.amount;
     }
@@ -270,12 +270,15 @@ const Withdraw = () => {
         </div>
         <div>
           Clear:
-          <textarea id="wrappedTextInputClear" rows="2" cols="30"
-          onChange={(e) => {
-            textAreaRefClr.current.value = e.target.value;
-          }}
-          ref={textAreaRefClr}>
-          </textarea>
+          <textarea
+            id="wrappedTextInputClear"
+            rows="2"
+            cols="30"
+            onChange={(e) => {
+              textAreaRefClr.current.value = e.target.value;
+            }}
+            ref={textAreaRefClr}
+          ></textarea>
         </div>
       </div>
     </div>
