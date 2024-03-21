@@ -2,7 +2,26 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract RGUtils {
+import "./StructuresInterface.sol";
+
+contract RGUtils is StructuresInterface{
+
+    function parseClearRecord(
+        string memory aRecord
+    ) public pure returns (ClearRecord memory) {
+        // 2:0x14dC79964da2C08b23698B3D3cc7Ca32193d9955:10000:2a2f2198
+        ClearRecord memory clR;
+        string[] memory recordSegments = splitString(
+            aRecord,
+            ":"
+        );
+        clR.serialNumber = recordSegments[0];
+        clR.creditor = recordSegments[1];
+        clR.amount = stringToNumeric(recordSegments[2]);
+        clR.salt = recordSegments[3];
+        return clR;
+    }
+
     function pSubstring(
         string memory str,
         uint256 startIndex,
@@ -101,7 +120,7 @@ contract RGUtils {
 
         return total;
     }
-    
+
     function generateUniqueId() public payable returns (uint256) {
         return
             uint256(
@@ -143,7 +162,7 @@ contract RGUtils {
         }
         return result;
     }
-/**
+    /**
     function split(
         string memory str,
         bytes1 delimiter

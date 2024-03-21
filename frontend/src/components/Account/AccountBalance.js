@@ -44,7 +44,7 @@ const AccountBalance = () => {
     let totalPayment = 0;
     if (paymentInfo.data.totalPayment)
       totalPayment = paymentInfo.data.totalPayment;
-    setPayedToContract(weiToEther(totalPayment));
+    setPayedToContract(totalPayment);
   };
 
   const fetchRGCredit = async () => {
@@ -61,7 +61,7 @@ const AccountBalance = () => {
     let rgCredit = 0;
     if (paymentInfo.data.currentBalance)
       rgCredit = paymentInfo.data.currentBalance;
-    setRgCredit(weiToEther(rgCredit));
+    setRgCredit(rgCredit);
   };
 
   const fetchOnchainBalance = async () => {
@@ -78,7 +78,7 @@ const AccountBalance = () => {
         .call({ from: selectedAccount.address.toLowerCase() });
       console.log("get Creditor Balance: ", balance, " wei");
       const balanceInEther = weiToEther(balance);
-      setOnchainCredit(balanceInEther);
+      setOnchainCredit(balance);
     } catch (error) {
       console.error("Error fetching user Balance:", error);
       setError(error.message);
@@ -168,16 +168,22 @@ const AccountBalance = () => {
       <div className="account-info">
         <p>Selected Account: {selectedAccount.toLowerCase()}</p>
         <div className="balance-breakdown">
-          <p onClick={() => fetchOnchainBalance()}>
-            Credited (On chain): {onchainCredit} Eth
+          <p
+            onClick={() => fetchOnchainBalance()}
+            title={onchainCredit + " wei"}
+          >
+            Credited (On chain): {weiToEther(onchainCredit)} Eth
           </p>
 
-          <p onClick={() => fetchOffchainPayedToContract()}>
-            Total payed to contract: {payedToContract} Eth
+          <p
+            onClick={() => fetchOffchainPayedToContract()}
+            title={numberWithCommas(payedToContract) + " wei"}
+          >
+            Total payed to contract: {weiToEther(payedToContract)} Eth
           </p>
           <p>Spent: {spent} Eth</p>
-          <p onClick={() => fetchRGCredit()}>
-            RG Credit: {rgCredit} Eth = 5.09 $
+          <p onClick={() => fetchRGCredit()} title={rgCredit + " wei"}>
+            RG Credit: {weiToEther(rgCredit)} Eth = 5.09 $
           </p>
         </div>
       </div>

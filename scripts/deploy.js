@@ -6,13 +6,10 @@
 // global scope, and execute the script.
 //const hre = require("hardhat");
 
-
 const fs = require("fs");
 const contractsDir = __dirname + "/../frontend/src/contracts";
 
-
 async function main() {
-
   // This is just a convenience check
   if (network.name === "hardhat") {
     console.warn(
@@ -21,28 +18,49 @@ async function main() {
         " option '--network localhost'"
     );
   }
-  
-  
-const provider = ethers.getDefaultProvider(); // Get the default provider
-const [deployer] = await ethers.getSigners();
-const balanceBeforeDeploy = await provider.getBalance(deployer.address);
+
+  const deploying_network = "localhost"; // can be localhost, sepolia, ...
+  let provider = ethers.getDefaultProvider(); // Get the default provider
+
+  if (deploying_network == "sepolia") {
+    /**
+      const ALCHEMY_SEPOLIA_RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/xl9NXzq-J2N1voXCujrq3iRcrnHfCq_X";
+      const ALCHEMY_SEPOLIA_API_KEY = "xl9NXzq-J2N1voXCujrq3iRcrnHfCq_X";
+      const ALCHEMY_SEPOLIA_WebSocket = "wss://eth-sepolia.g.alchemy.com/v2/xl9NXzq-J2N1voXCujrq3iRcrnHfCq_X";
+      const ACC1_PRIVATE_KEY =
+        "c906019567d27e7c46785ab62e2b856eadfa7d384547e4e7b3f027dc0e9550b2";
+      const ACC1_PUBLIC_KEY = "0x5095ad334F6766DDFD07a87a550cC0f96b377A25";
+
+     */
+    provider = new ethers.providers.JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/xl9NXzq-J2N1voXCujrq3iRcrnHfCq_X");
+  }
+
+  const [deployer] = await ethers.getSigners();
+  const balanceBeforeDeploy = await provider.getBalance(deployer.address);
 
   console.log("Deploying the contracts with the account:", deployer.address);
-  console.log("Deploying the contracts with the account:", await deployer.getAddress());
+  console.log(
+    "Deploying the contracts with the account:",
+    await deployer.getAddress()
+  );
 
-  console.log("Account balance Before deploy:", ethers.formatEther(balanceBeforeDeploy));
+  console.log(
+    "Account balance Before deploy:",
+    ethers.formatEther(balanceBeforeDeploy)
+  );
   //console.log("Account balance Before deploy:", ethers.utils.formatEther(balanceBeforeDeploy.toString()));
-  
+
   let contractsAddresses = {};
 
   // deploy MessageVerifier
   const messageVerifierDeploy = await ethers.deployContract("MessageVerifier");
-  const messageVerifierDeployRes = await messageVerifierDeploy.waitForDeployment();
-  let messageVerifierDeployedAddress = await messageVerifierDeployRes.getAddress();
+  const messageVerifierDeployRes =
+    await messageVerifierDeploy.waitForDeployment();
+  let messageVerifierDeployedAddress =
+    await messageVerifierDeployRes.getAddress();
   console.log(`Deployed MessageVerifier(${messageVerifierDeployedAddress})`);
   contractsAddresses["MessageVerifier"] = messageVerifierDeployedAddress;
   saveFrontendContracts("MessageVerifier");
-
 
   // deploy RGUtils
   const rgUtilsDeploy = await ethers.deployContract("RGUtils");
@@ -52,11 +70,11 @@ const balanceBeforeDeploy = await provider.getBalance(deployer.address);
   contractsAddresses["RGUtils"] = rgUtilsDeployedAddress;
   saveFrontendContracts("RGUtils");
 
-
-
   // deploy RoyalGrow
-  const royalGrowDeploy = await ethers.deployContract(
-    "RoyalGrow", [messageVerifierDeployedAddress, rgUtilsDeployedAddress]); //, { value: 1 }
+  const royalGrowDeploy = await ethers.deployContract("RoyalGrow", [
+    messageVerifierDeployedAddress,
+    rgUtilsDeployedAddress,
+  ]); //, { value: 1 }
   const royalGrowDeployRes = await royalGrowDeploy.waitForDeployment();
   let deployedAddress = await royalGrowDeployRes.getAddress();
   console.log(`Deployed RoyalGrow(${deployedAddress})`);
@@ -66,7 +84,7 @@ const balanceBeforeDeploy = await provider.getBalance(deployer.address);
   // save contracts addresses
   saveFrontendContractAddresses(contractsAddresses);
 
-/*
+  /*
   //const ethers = require('ethers'); 
   async function deployRoyalGrow(messageVerifierDeployedAddress, gasLimit, gasPrice) {
     const provider = new ethers.providers.JsonRpcProvider('your-rpc-url'); // Replace with your provider URL
@@ -108,9 +126,6 @@ deployRoyalGrow(messageVerifierDeployedAddress, gasLimit, gasPrice)
 
  */
 
-
-
-
   // const currentTimestampInSeconds = Math.round(Date.now() / 1000);
   // const unlockTime = currentTimestampInSeconds + 60;
   // const lockedAmount = hre.ethers.parseEther("0.001");
@@ -118,8 +133,6 @@ deployRoyalGrow(messageVerifierDeployedAddress, gasLimit, gasPrice)
   //   value: lockedAmount,
   // });
   // await lock.waitForDeployment();
-
-
 }
 
 function saveFrontendContractAddresses(contractsAddresses) {

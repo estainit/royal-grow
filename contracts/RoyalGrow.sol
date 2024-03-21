@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./MessageVerifier.sol";
 import "./RGUtils.sol";
+import "./StructuresInterface.sol";
 
-contract RoyalGrow {
+contract RoyalGrow is StructuresInterface {
     address public verifierContractAddress;
     MessageVerifier verifierContract;
 
@@ -30,30 +31,15 @@ contract RoyalGrow {
     uint256 public trialFundingCost;
 
     uint txFee;
+    uint public lastUpdateDCMerkleRoot;
+    uint public dCMerkleRootCoolDownWindowTime;
+    uint public dCMerkleRootWithdrawWindowTime;
 
     enum State {
         Running,
         Paused
     }
     State public contractState;
-
-    struct DCProfile {
-        uint256 serialNumber;
-        bytes8 rootHash;
-    }
-
-    struct ClearRecord {
-        string serialNumber;
-        string creditor;
-        uint256 amount;
-        string salt;
-    }
-
-    struct WithDrawState {
-        string[] records;
-        uint256 recordCounter;
-        uint256 total;
-    }
 
     uint dcSerialNumber;
     mapping(uint => bytes8) public dcMerkleRoots;
@@ -115,6 +101,10 @@ contract RoyalGrow {
 
         withdrawedRecordsCounter = 0;
         maxWRecCounter = 0;
+
+        lastUpdateDCMerkleRoot = block.timestamp;
+        dCMerkleRootCoolDownWindowTime = 2;
+        dCMerkleRootWithdrawWindowTime = 1;
     }
 
     receive() external payable {
@@ -139,12 +129,46 @@ contract RoyalGrow {
         emit PayToContractEvent(msg.sender, msg.value, uniqueId);
     }
 
-    function updateCreditsMerkleRoot(bytes8 newCreditsMerkleRoot) public {
+    // FIXME: need to add onlyAdmin() modifier
+    function updateCreditsMerkleRoot(
+        bytes8 newDCRoot
+    ) public returns (bool stat_, string memory msg_) {
+        if (!dCUpdateAllowed()) {
+            return (
+                false,
+                string(
+                    abi.encodePacked(
+                        "You are in withdrawal phase, so you are not allowed to update DCRoot!",
+                        " Block.timestamp(",
+                        Strings.toString(block.timestamp),
+                        ") lastUpdateDCMerkleRoot(",
+                        Strings.toString(lastUpdateDCMerkleRoot),
+                        ") dCMerkleRootCoolDownWindowTime(",
+                        Strings.toString(dCMerkleRootCoolDownWindowTime * 60),
+                        ") dCMerkleRootWithdrawWindowTime(",
+                        Strings.toString(dCMerkleRootWithdrawWindowTime * 60)
+                    )
+                )
+            );
+        }
+
         dcSerialNumber++;
-        dcMerkleRoots[dcSerialNumber] = newCreditsMerkleRoot;
-        emit CreditsMerkleRootUpdatedEvent(
-            dcSerialNumber,
-            newCreditsMerkleRoot
+        dcMerkleRoots[dcSerialNumber] = newDCRoot;
+        lastUpdateDCMerkleRoot = block.timestamp;
+
+        emit CreditsMerkleRootUpdatedEvent(dcSerialNumber, newDCRoot);
+
+        return (
+            true,
+            string(
+                abi.encodePacked(
+                    "DCRoot updated serialNumber(",
+                    Strings.toString(dcSerialNumber),
+                    ") date(",
+                    Strings.toString(lastUpdateDCMerkleRoot),
+                    ")"
+                )
+            )
         );
     }
 
@@ -177,7 +201,7 @@ contract RoyalGrow {
         string calldata clearRecord,
         string[] calldata proofs
     ) public view returns (bool, string memory) {
-        ClearRecord memory clR = parseClearRecord(clearRecord);
+        ClearRecord memory clR = rgUtilsContract.parseClearRecord(clearRecord);
         string memory hashedClearData = rgUtilsContract.doKeccak256(
             clearRecord
         );
@@ -292,6 +316,27 @@ contract RoyalGrow {
         return Strings.toHexString(uint256(uint160(_addr)), 20);
     }
 
+    function merkleRootIsMatured() public view returns (bool) {
+        // two minutes for cool down the new DC and
+        // Being aware of the possible betrayal of the agent by issuing new corrupted DC & Merkle Root
+        // FIXME: this 2 minutes would be a barrier for good UX. this time should be calculated dinamycally
+        return
+            lastUpdateDCMerkleRoot + (dCMerkleRootCoolDownWindowTime * 60) <=
+            block.timestamp;
+    }
+
+    function dCUpdateAllowed() public view returns (bool) {
+        // update DCRoot ->
+        // 2 minutes not allowed withdraw, not allowed update DCRoot ->
+        // 1 minute allowed withdraw, but not allowed update DC Root ->
+        // repeat the cycle
+        return
+            lastUpdateDCMerkleRoot +
+                (dCMerkleRootCoolDownWindowTime * 60) +
+                (dCMerkleRootWithdrawWindowTime * 60) <=
+            block.timestamp;
+    }
+
     function withdrawDummy(
         string calldata _msg, // a string of comma seperated records
         uint256 _amount,
@@ -330,7 +375,7 @@ contract RoyalGrow {
         string[] memory creditRecords = rgUtilsContract.splitString(_msg, "+");
 
         WithDrawState memory wStat;
-        wStat.records = new string[](128);
+        wStat.records = new string[](16); // due to gas limits, in every withdraw request, we can apply maximum 16 records
         wStat.recordCounter = 0;
         wStat.total = 0;
 
@@ -340,7 +385,9 @@ contract RoyalGrow {
                 ","
             );
 
-            ClearRecord memory clR = parseClearRecord(creditRecords[inx]);
+            ClearRecord memory clR = rgUtilsContract.parseClearRecord(
+                creditRecords[inx]
+            );
 
             // check if signer is equal to creditor(the address in clear record)
             if (
@@ -426,6 +473,26 @@ contract RoyalGrow {
             );
         }
 
+        // check if merkle root is matured
+        if (!merkleRootIsMatured()) {
+            return (
+                false,
+                string(
+                    abi.encodePacked(
+                        "DC Merkle root is not matured! wait!",
+                        " Block.timestamp(",
+                        Strings.toString(block.timestamp),
+                        ") lastUpdateDCMerkleRoot(",
+                        Strings.toString(lastUpdateDCMerkleRoot),
+                        ") dCMerkleRootCoolDownWindowTime(",
+                        Strings.toString(dCMerkleRootCoolDownWindowTime * 60),
+                        ") dCMerkleRootWithdrawWindowTime(",
+                        Strings.toString(dCMerkleRootWithdrawWindowTime * 60)
+                    )
+                )
+            );
+        }
+
         // real transfer fund
         string memory latestObf;
         for (uint256 i = 0; i < wStat.recordCounter; i++) {
@@ -467,22 +534,6 @@ contract RoyalGrow {
                 )
             )
         );
-    }
-
-    function parseClearRecord(
-        string memory aRecord
-    ) public view returns (ClearRecord memory) {
-        // 2:0x14dC79964da2C08b23698B3D3cc7Ca32193d9955:10000:2a2f2198
-        ClearRecord memory clR;
-        string[] memory recordSegments = rgUtilsContract.splitString(
-            aRecord,
-            ":"
-        );
-        clR.serialNumber = recordSegments[0];
-        clR.creditor = recordSegments[1];
-        clR.amount = rgUtilsContract.stringToNumeric(recordSegments[2]);
-        clR.salt = recordSegments[3];
-        return clR;
     }
 
     function alreadyWithdrawed(string memory obf) public view returns (bool) {
@@ -546,6 +597,41 @@ contract RoyalGrow {
     }
  */
 
+    function verifyMessageSignature(
+        string memory message,
+        bytes memory signature,
+        address signer
+    ) public returns (bool) {
+        // Call the verifySignature function from the MessageVerifier contract
+        bool isVerified = verifierContract.verifySignature(
+            message,
+            signature,
+            signer
+        );
+
+        // Emit an event with the verification result
+        if (!isVerified) emit SignatureVerifiedEvent(signer, isVerified);
+
+        return isVerified;
+    }
+
+    function getDepositsBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+
+    function getCreditorBalanceView() public view returns (uint) {
+        return creditorsAmount[msg.sender];
+    }
+
+    function getCreditorBalance() public returns (uint) {
+        emit GetCreditorBalanceEvent(msg.sender, getCreditorBalanceView());
+        return getCreditorBalanceView();
+    }
+
+    /**
+
+
+    
     function withdraw(
         //string calldata _msg, // a string of comma seperated records
         uint256 _amount
@@ -565,7 +651,6 @@ contract RoyalGrow {
         if (WithdrawalsQueue[msg.sender][_amount] == 0) {
             stage = 1; // we are in stage 1 which means creaditor asked for withdraw
             WithdrawalsQueue[msg.sender][_amount] = block.timestamp;
-            /**
             // check if merkle proffs are valid
             // signed message _msg = signature::v0.0.0:publicKey::proof1:proof2:proof3
             // Initialize the result array
@@ -574,7 +659,6 @@ contract RoyalGrow {
             //string memory version = parts[1];
             string memory signedMsg = string(abi.encodePacked(parts[1], parts[2]));
             require(verifyMessageSignature(signedMsg, bytes(signature), msg.sender));
-    */
 
             emit WithdrawalEvent(msg.sender, _amount, block.timestamp, stage);
             return true;
@@ -615,37 +699,6 @@ contract RoyalGrow {
         }
     }
 
-    function verifyMessageSignature(
-        string memory message,
-        bytes memory signature,
-        address signer
-    ) public returns (bool) {
-        // Call the verifySignature function from the MessageVerifier contract
-        bool isVerified = verifierContract.verifySignature(
-            message,
-            signature,
-            signer
-        );
-
-        // Emit an event with the verification result
-        if (!isVerified) emit SignatureVerifiedEvent(signer, isVerified);
-
-        return isVerified;
-    }
-
-    function getDepositsBalance() public view returns (uint) {
-        return address(this).balance;
-    }
-
-    function getCreditorBalanceView() public view returns (uint) {
-        return creditorsAmount[msg.sender];
-    }
-
-    function getCreditorBalance() public returns (uint) {
-        emit GetCreditorBalanceEvent(msg.sender, getCreditorBalanceView());
-        return getCreditorBalanceView();
-    }
-
     function base64Decode(
         string memory base64String
     ) internal pure returns (string memory) {
@@ -653,4 +706,6 @@ contract RoyalGrow {
         // You can use libraries like https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Base64.sol
         // or implement your own decoding logic
     }
+
+     */
 }

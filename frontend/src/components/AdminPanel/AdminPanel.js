@@ -55,7 +55,7 @@ function AdminPanel() {
         .validateProof(
           "ccd558be",
           "2:5000:7e74ed4b",
-          ["r.9ee8a7f1","r.407af542","r.4a742197","r.310aa3fc"],
+          ["r.9ee8a7f1", "r.407af542", "r.4a742197", "r.310aa3fc"],
           1
         )
         .call();
@@ -64,7 +64,7 @@ function AdminPanel() {
       let calcRootByAProve = await globData.royalGrowcontractInstance.methods
         .calcRootByAProve(
           "2:5000:7e74ed4b",
-          ["r.9ee8a7f1","r.407af542","r.4a742197","r.310aa3fc"],
+          ["r.9ee8a7f1", "r.407af542", "r.4a742197", "r.310aa3fc"],
           1
         )
         .call();
@@ -76,6 +76,7 @@ function AdminPanel() {
         .call();
       let localElems = [];
       const decoder = new TextDecoder();
+      console.log("last10DCRoots_", last10DCRoots_);
       for (const inx of Object.keys(last10DCRoots_).sort()) {
         if (last10DCRoots_[inx].serialNumber.toString() != "0")
           localElems.push({
@@ -147,7 +148,7 @@ function AdminPanel() {
     // Call the smart contract method
     const tx = await globData.royalGrowcontractInstance.methods
       .updateCreditsMerkleRoot(byte8Data)
-      .send({ from: selectedAccount.address });
+      .call();
 
     console.log("update Credits Merkle Root:", tx);
 
