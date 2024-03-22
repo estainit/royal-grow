@@ -85,8 +85,15 @@ const Withdraw = () => {
         address.toString().toLowerCase(),
         signature
       )
-      .call({ from: address.toLowerCase() });
+      .send({ from: address.toLowerCase() });
     console.log("Full Withdrow res:", tx);
+    // Wait for transaction confirmation and access response
+    const receipt = await tx.wait();
+    const [success_, message_] =
+      receipt.events.WithdrawDummy.extractLogs()[0].args;
+
+    console.log("Transaction confirmed:", success_);
+    console.log("Response message:", message_);
   };
 
   const getLatestGuaranteeDC = async () => {
@@ -141,8 +148,15 @@ const Withdraw = () => {
           address.toString().toLowerCase(),
           signature
         )
-        .call({ from: address.toLowerCase() });
+        .send({ from: address.toLowerCase() });
       console.log("Withdrow res:", tx);
+      // Wait for transaction confirmation and access response
+      const receipt = await tx.wait();
+      const [success_, message_] =
+        receipt.events.WithdrawDummy.extractLogs()[0].args;
+
+      console.log("Transaction confirmed:", success_);
+      console.log("Response message:", message_);
 
       /**
       const tx = await globData.royalGrowcontractInstance.methods

@@ -148,7 +148,7 @@ function AdminPanel() {
     // Call the smart contract method
     const tx = await globData.royalGrowcontractInstance.methods
       .updateCreditsMerkleRoot(byte8Data)
-      .call();
+      .send({ from: selectedAccount.address });
 
     console.log("update Credits Merkle Root:", tx);
 

@@ -2,24 +2,28 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 import "./StructuresInterface.sol";
 
-contract RGUtils is StructuresInterface{
-
+contract RGUtils is StructuresInterface {
     function parseClearRecord(
         string memory aRecord
     ) public pure returns (ClearRecord memory) {
         // 2:0x14dC79964da2C08b23698B3D3cc7Ca32193d9955:10000:2a2f2198
         ClearRecord memory clR;
-        string[] memory recordSegments = splitString(
-            aRecord,
-            ":"
-        );
+        string[] memory recordSegments = splitString(aRecord, ":");
         clR.serialNumber = recordSegments[0];
         clR.creditor = recordSegments[1];
         clR.amount = stringToNumeric(recordSegments[2]);
         clR.salt = recordSegments[3];
         return clR;
+    }
+
+    function addressToString(
+        address _addr
+    ) public pure returns (string memory) {
+        return Strings.toHexString(uint256(uint160(_addr)), 20);
     }
 
     function pSubstring(

@@ -308,14 +308,6 @@ contract RoyalGrow is StructuresInterface {
         return proof;
     }
 
-    function updateMyBalance() public {}
-
-    function addressToString(
-        address _addr
-    ) public pure returns (string memory) {
-        return Strings.toHexString(uint256(uint160(_addr)), 20);
-    }
-
     function merkleRootIsMatured() public view returns (bool) {
         // two minutes for cool down the new DC and
         // Being aware of the possible betrayal of the agent by issuing new corrupted DC & Merkle Root
@@ -345,14 +337,17 @@ contract RoyalGrow is StructuresInterface {
     ) public returns (bool, string memory) {
         // check if the signer is the msg.sender
         if (
-            !rgUtilsContract.areStrsEqual(signer, addressToString(msg.sender))
+            !rgUtilsContract.areStrsEqual(
+                signer,
+                rgUtilsContract.addressToString(msg.sender)
+            )
         ) {
             return (
                 false,
                 string(
                     abi.encodePacked(
                         "Tx Sender(",
-                        addressToString(msg.sender),
+                        rgUtilsContract.addressToString(msg.sender),
                         ") is not the signer(",
                         signer,
                         ")"
@@ -392,7 +387,7 @@ contract RoyalGrow is StructuresInterface {
             // check if signer is equal to creditor(the address in clear record)
             if (
                 !rgUtilsContract.areStrsEqual(
-                    addressToString(msg.sender),
+                    rgUtilsContract.addressToString(msg.sender),
                     clR.creditor
                 )
             ) {
@@ -403,7 +398,7 @@ contract RoyalGrow is StructuresInterface {
                             "Tx Creditor(",
                             clR.creditor,
                             ") is not the signer(",
-                            addressToString(msg.sender),
+                            rgUtilsContract.addressToString(msg.sender),
                             ")"
                         )
                     )
@@ -428,7 +423,6 @@ contract RoyalGrow is StructuresInterface {
                 );
             }
 
-            //FIXME: this checks MUST be activated ASAP
             // check if given proof is correct
             (
                 bool proofIsValid,
@@ -514,8 +508,8 @@ contract RoyalGrow is StructuresInterface {
 
         uint prvAmount = getCreditorBalance();
         uint currentCredit = creditorsAmount[msg.sender] - wStat.total;
-        creditorsAmount[msg.sender] = currentCredit; // FIXME: it looks does not work properly
-        payable(msg.sender).transfer(wStat.total); // FIXME: it looks does not work properly
+        creditorsAmount[msg.sender] = currentCredit;
+        payable(msg.sender).transfer(wStat.total);
 
         return (
             true,
@@ -523,7 +517,7 @@ contract RoyalGrow is StructuresInterface {
                 abi.encodePacked(
                     latestObf,
                     " Withdrow to account (",
-                    addressToString(msg.sender),
+                    rgUtilsContract.addressToString(msg.sender),
                     ") Done. The withdrowed amount is ",
                     Strings.toString(wStat.total),
                     ". Previous balance was ",
@@ -537,7 +531,6 @@ contract RoyalGrow is StructuresInterface {
     }
 
     function alreadyWithdrawed(string memory obf) public view returns (bool) {
-        // FIXME: it looks does not work properly
         for (uint256 i = 0; i < withdrawedRecordsCounter; i++) {
             if (rgUtilsContract.areStrsEqual(withdrawedRecords[i], obf))
                 return true;
@@ -547,7 +540,6 @@ contract RoyalGrow is StructuresInterface {
     }
 
     function setAsWithdrawed(string memory obf) public returns (bool) {
-        // FIXME: it looks does not work properly
         if (withdrawedRecordsCounter < maxWRecCounter) {
             withdrawedRecords[withdrawedRecordsCounter] = obf;
         } else {
@@ -573,29 +565,20 @@ contract RoyalGrow is StructuresInterface {
         return "Out of range";
     }
 
-    /**
- 
- 
-    struct ObfuscatedRecord {
-        string serialNumber;
-        uint256 amount;
-        string hashedClearRecord;
+    function getDepositsBalance() public view returns (uint) {
+        return address(this).balance;
     }
 
-    function parseObfRecord(
-        string memory aRecord
-    ) public returns (ObfuscatedRecord memory) {
-        ObfuscatedRecord memory obfR;
-        string[] memory recordSegments = rgUtilsContract.splitString(
-            aRecord,
-            ":"
-        );
-        obfR.serialNumber = recordSegments[0];
-        obfR.amount = rgUtilsContract.stringToNumeric(recordSegments[1]);
-        obfR.hashedClearRecord = recordSegments[2];
-        return obfR;
+    function getCreditorBalanceView() public view returns (uint) {
+        return creditorsAmount[msg.sender];
     }
- */
+
+    function getCreditorBalance() public returns (uint) {
+        emit GetCreditorBalanceEvent(msg.sender, getCreditorBalanceView());
+        return getCreditorBalanceView();
+    }
+
+    /**
 
     function verifyMessageSignature(
         string memory message,
@@ -615,23 +598,6 @@ contract RoyalGrow is StructuresInterface {
         return isVerified;
     }
 
-    function getDepositsBalance() public view returns (uint) {
-        return address(this).balance;
-    }
-
-    function getCreditorBalanceView() public view returns (uint) {
-        return creditorsAmount[msg.sender];
-    }
-
-    function getCreditorBalance() public returns (uint) {
-        emit GetCreditorBalanceEvent(msg.sender, getCreditorBalanceView());
-        return getCreditorBalanceView();
-    }
-
-    /**
-
-
-    
     function withdraw(
         //string calldata _msg, // a string of comma seperated records
         uint256 _amount
@@ -707,5 +673,24 @@ contract RoyalGrow is StructuresInterface {
         // or implement your own decoding logic
     }
 
-     */
+    struct ObfuscatedRecord {
+        string serialNumber;
+        uint256 amount;
+        string hashedClearRecord;
+    }
+
+    function parseObfRecord(
+        string memory aRecord
+    ) public returns (ObfuscatedRecord memory) {
+        ObfuscatedRecord memory obfR;
+        string[] memory recordSegments = rgUtilsContract.splitString(
+            aRecord,
+            ":"
+        );
+        obfR.serialNumber = recordSegments[0];
+        obfR.amount = rgUtilsContract.stringToNumeric(recordSegments[1]);
+        obfR.hashedClearRecord = recordSegments[2];
+        return obfR;
+    }
+ */
 }
