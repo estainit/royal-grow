@@ -100,10 +100,10 @@ function getRandomInt(min, max) {
   return Math.floor(scaled); // Ensure integer using Math.floor
 }
 
-function getNow() {
-  //   var day_names = new Array("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT");
+function getDateStr(theTime, needMiliSec) {
+  //   let day_names = new Array("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT");
 
-  //   var month_names = new Array(
+  //   let month_names = new Array(
   //     "JAN",
   //     "FEB",
   //     "MAR",
@@ -118,21 +118,22 @@ function getNow() {
   //     "DEC"
   //   );
 
-  var date = new Date();
-  var curr_date = date.getDate();
-  var curr_month = date.getMonth() + 1;
-  var curr_year = date.getFullYear();
-  var cur_hour = date.getHours();
-  var minutes = date.getMinutes();
-  var seconds = date.getSeconds();
-  var miliseconds = date.getMilliseconds();
-  //   var AMorPM = cur_hour >= 12 ? (AMorPM = "PM") : (AMorPM = "AM");
+  let theDate = new Date();
+  if (theTime != null) theDate = new Date(theTime);
+  let curr_date = theDate.getDate();
+  let curr_month = theDate.getMonth() + 1;
+  let curr_year = theDate.getFullYear();
+  let cur_hour = theDate.getHours();
+  let minutes = theDate.getMinutes();
+  let seconds = theDate.getSeconds();
+  let miliseconds = theDate.getMilliseconds();
+  //   let AMorPM = cur_hour >= 12 ? (AMorPM = "PM") : (AMorPM = "AM");
   cur_hour = cur_hour > 12 ? (cur_hour -= 12) : cur_hour;
 
   if (cur_hour < 10) cur_hour = "0" + cur_hour;
   if (minutes < 10) minutes = "0" + minutes;
 
-  var finalDate =
+  let finalDate =
     curr_year +
     "-" +
     curr_month +
@@ -145,11 +146,13 @@ function getNow() {
     ":" +
     seconds;
 
+  if (needMiliSec) finalDate += "." + miliseconds;
+
   return finalDate;
 }
 
 module.exports = {
   breakDown,
   getRandomInt,
-  getNow,
+  getDateStr,
 };

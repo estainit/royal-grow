@@ -35,6 +35,25 @@ const SCListeners = () => {
         uniqueId: String(event.returnValues.uniqueId),
       });
     };
+    const handleWithdrawEvent = (event) => {
+      let msg = `Payment to contract by ${
+        event.returnValues.sender
+      } ${globData.web3.utils.fromWei(
+        event.returnValues.amount,
+        "ether"
+      )} Eth ID: ${event.returnValues.uniqueId}`;
+      console.log(msg);
+      dspEvent(msg);
+
+      postToBE("payment/logWithdraw", {
+        withdrawer: String(event.returnValues.withdrawer).toLowerCase(),
+        amount: String(event.returnValues.amount),
+        withdrawMsg: String(event.returnValues.withdrawMsg),
+        signature: String(event.returnValues.signature),
+        amount: String(event.returnValues.amount),
+        timestamp: String(event.returnValues.timestamp),
+      });
+    };
 
     const handleCreditsMerkleRootUpdatedEvent = (event) => {
       let msg = `Updating DCRootHash by ${event.returnValues.sender} Serial number (${event.returnValues.serialNumber}) root hash(${event.returnValues.creditsMerkleRoot})`;
@@ -62,6 +81,7 @@ const SCListeners = () => {
     };
 
     const subscribeToEvent = async () => {
+      // Obf Burnt Event
       const subsObfBurntEvent =
         await globData.royalGrowcontractInstance.events.ObfBurntEvent({
           fromBlock: "latest",
@@ -72,6 +92,7 @@ const SCListeners = () => {
       });
       subsObfBurntEvent.on("error", dspEvent(console.error, "err"));
 
+      // Invalid DC Prof Event
       const subsInvalidDCProfEvent =
         await globData.royalGrowcontractInstance.events.InvalidDCProfEvent({
           fromBlock: "latest",
@@ -82,6 +103,7 @@ const SCListeners = () => {
       });
       subsInvalidDCProfEvent.on("error", dspEvent(console.error, "err"));
 
+      // Pay To Contract Event
       const subsPayToContractEvent =
         await globData.royalGrowcontractInstance.events.PayToContractEvent({
           fromBlock: "latest",
@@ -91,6 +113,17 @@ const SCListeners = () => {
       });
       subsPayToContractEvent.on("error", dspEvent(console.error, "err"));
 
+      // Pay To Contract Event
+      const subsWithdrawEvent =
+        await globData.royalGrowcontractInstance.events.WithdrawEvent({
+          fromBlock: "latest",
+        });
+      subsWithdrawEvent.on("data", (event) => {
+        handleWithdrawEvent(event);
+      });
+      subsWithdrawEvent.on("error", dspEvent(console.error, "err"));
+
+      // Credits Merkle Root Updated Event
       const subsCreditsMerkleRootUpdatedEvent =
         await globData.royalGrowcontractInstance.events.CreditsMerkleRootUpdatedEvent(
           {

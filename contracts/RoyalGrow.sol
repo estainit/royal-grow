@@ -9,6 +9,7 @@ import "./RGUtils.sol";
 import "./StructuresInterface.sol";
 
 contract RoyalGrow is StructuresInterface {
+    string public version;
     address public verifierContractAddress;
     MessageVerifier verifierContract;
 
@@ -54,11 +55,12 @@ contract RoyalGrow is StructuresInterface {
     mapping(address => mapping(uint => uint256)) public WithdrawalsQueue;
 
     event PayToContractEvent(address sender, uint amount, uint256 uniqueId);
-    event WithdrawalEvent(
-        address indexed user,
+    event WithdrawEvent(
+        address indexed withdrawer,
+        string withdrawMsg,
+        bytes signature,
         uint256 amount,
-        uint256 timestamp,
-        uint8 stage
+        uint256 timestamp
     );
     event SignatureVerifiedEvent(address signer, bool isVerified);
     event GetCreditorBalanceEvent(address indexed user, uint256 amount);
@@ -83,6 +85,7 @@ contract RoyalGrow is StructuresInterface {
         address _verifierContractAddress,
         address _rgUtilsContractAddress
     ) payable {
+        version = "0.0.0";
         verifierContractAddress = _verifierContractAddress;
         verifierContract = MessageVerifier(verifierContractAddress);
         rgUtilsContractAddress = _rgUtilsContractAddress;
@@ -511,6 +514,14 @@ contract RoyalGrow is StructuresInterface {
         creditorsAmount[msg.sender] = currentCredit;
         payable(msg.sender).transfer(wStat.total);
 
+        emit WithdrawEvent(
+            msg.sender,
+            _msg,
+            signature,
+            _amount,
+            block.timestamp
+        );
+
         return (
             true,
             string(
@@ -609,7 +620,7 @@ contract RoyalGrow is StructuresInterface {
         )
     {
         uint8 stage = 0;
-        emit WithdrawalEvent(msg.sender, _amount, block.timestamp, stage);
+        emit WithdrawEvent(msg.sender, _amount, block.timestamp, stage);
 
         require(_amount > 0, "Withdrawal amount must be greater than zero");
         require(creditorsAmount[msg.sender] >= _amount, "Insufficient fund");
@@ -626,7 +637,7 @@ contract RoyalGrow is StructuresInterface {
             string memory signedMsg = string(abi.encodePacked(parts[1], parts[2]));
             require(verifyMessageSignature(signedMsg, bytes(signature), msg.sender));
 
-            emit WithdrawalEvent(msg.sender, _amount, block.timestamp, stage);
+            emit WithdrawEvent(msg.sender, _amount, block.timestamp, stage);
             return true;
         } else {
             require(
@@ -655,7 +666,7 @@ contract RoyalGrow is StructuresInterface {
             (bool success, ) = msg.sender.call{value: applyableWithdraw}("");
             require(success, "Transfer failed");
 
-            emit WithdrawalEvent(
+            emit WithdrawEvent(
                 msg.sender,
                 applyableWithdraw,
                 block.timestamp,

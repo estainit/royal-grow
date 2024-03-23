@@ -25,7 +25,7 @@ const {
   insertToObfDetailedCreditsProfile,
   getRecordsProfileBySerialNumber,
 } = require("../entity/rg_detailed_credits_obfuscated_profile");
-const { getNow } = require("../cutils");
+const { getDateStr } = require("../cutils");
 
 async function generateRGCD(serialNumber = 0) {
   const { detailedCredits, obfuscatedDetailedCredits } = await prepareRGCDInfo(
@@ -48,7 +48,7 @@ async function generateRGCD(serialNumber = 0) {
   let obfLeaves = obfuscatedDetailedCredits.map((obj) => obj.obfuscatedRecord);
   console.log("obfLeaves ", obfLeaves);
 
-  const docInfoLeaves = [serialNumber, getNow()];
+  const docInfoLeaves = [serialNumber, getDateStr()];
   const lotteryTicketsLeaves = [];
   const lotteryRevealTicketsLeaves = [];
   const lotteryOracleLeaves = [];
