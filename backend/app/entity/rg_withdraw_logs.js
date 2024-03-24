@@ -21,10 +21,8 @@ async function logWithdraw(
       amount,
       withdrawMsg,
       signature,
-      getDateStr(parseInt(timestamp), true),
+      getDateStr(parseInt(timestamp) * 1000, true),
     ];
-    console.log("inserting (timestamp)", (timestamp));
-    console.log("inserting parseInt(timestamp)", parseInt(timestamp));
     console.log("inserting withdraw log values", values);
     await dbPool.query(query, values);
     return true;
