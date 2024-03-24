@@ -591,24 +591,6 @@ contract RoyalGrow is StructuresInterface {
 
     /**
 
-    function verifyMessageSignature(
-        string memory message,
-        bytes memory signature,
-        address signer
-    ) public returns (bool) {
-        // Call the verifySignature function from the MessageVerifier contract
-        bool isVerified = verifierContract.verifySignature(
-            message,
-            signature,
-            signer
-        );
-
-        // Emit an event with the verification result
-        if (!isVerified) emit SignatureVerifiedEvent(signer, isVerified);
-
-        return isVerified;
-    }
-
     function withdraw(
         //string calldata _msg, // a string of comma seperated records
         uint256 _amount
@@ -674,14 +656,6 @@ contract RoyalGrow is StructuresInterface {
             );
             return true;
         }
-    }
-
-    function base64Decode(
-        string memory base64String
-    ) internal pure returns (string memory) {
-        // Implementation of base64 decoding logic
-        // You can use libraries like https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Base64.sol
-        // or implement your own decoding logic
     }
 
     struct ObfuscatedRecord {
