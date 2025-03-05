@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-
   # PostgreSQL database
   db:
     build:
@@ -32,6 +31,8 @@ services:
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
+    ports:
+      - "3100:3100"  # Expose backend port
     volumes:
       - ./backend:/backend
       - /backend/node_modules
@@ -51,6 +52,8 @@ services:
     build:
       context: .
       dockerfile: dockerfile_frontend
+    ports:
+      - "3200:3200"  # Expose frontend port
     volumes:
       - ./frontend:/frontend
       - /frontend/node_modules
@@ -58,23 +61,6 @@ services:
       - NODE_ENV=production
       - REACT_APP_API_URL=https://api.cryptafe.com
     depends_on:
-      - backend
-    networks:
-      - rgnetwork
-    restart: unless-stopped
-
-  # Nginx reverse proxy
-  nginx:
-    image: nginx:alpine
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/ssl:/etc/nginx/ssl
-      - ./frontend/build:/usr/share/nginx/html
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - frontend
       - backend
     networks:
       - rgnetwork
