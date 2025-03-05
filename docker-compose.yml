@@ -5,56 +5,84 @@ services:
   # PostgreSQL database
   db:
     build:
+      context: .
       dockerfile: dockerfile_postgresql
       args:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-    - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     networks:
       - rgnetwork
+    restart: unless-stopped
 
   # Node.js server
   backend:
     build:
+      context: .
       dockerfile: dockerfile_backend
-    ports:
-    - "3100:3100"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+    volumes:
+      - ./backend:/backend
+      - /backend/node_modules
+    depends_on:
+      - db
     networks:
       - rgnetwork
-    volumes:
-          - ./backend:/backend
-    depends_on:
-      - db  # Ensure database is started before the Node.js service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # React application
   frontend:
     build:
+      context: .
       dockerfile: dockerfile_frontend
-    ports:
-      - "3200:3200"  # Map port 80 of the container to port 8080 of the host (adjust if needed)
-    networks:
-      - rgnetwork
     volumes:
       - ./frontend:/frontend
+      - /frontend/node_modules
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://api.cryptafe.com
     depends_on:
-      - backend  # Ensure Node.js server is started before the React application
+      - backend
+    networks:
+      - rgnetwork
+    restart: unless-stopped
 
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./frontend/build:/usr/share/nginx/html
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - rgnetwork
+    restart: unless-stopped
 
 networks:
   rgnetwork:
+    driver: bridge
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+volumes:
+  postgres_data:
