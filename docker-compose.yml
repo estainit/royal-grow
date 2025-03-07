@@ -1,41 +1,33 @@
 version: '3.8'
 
 services:
+
   # PostgreSQL database
   db:
     build:
-      context: .
-      dockerfile: dockerfile_postgresql
+      dockerfile: db/Dockerfile
       args:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+    image: rgi_db
+    container_name: rgc_db
+    ports:
+    - "5432:5432"
     networks:
       - rgnetwork
-    restart: unless-stopped
 
   # Node.js server
   backend:
     build:
       context: .
       dockerfile: dockerfile_backend
-    environment:
-      - NODE_ENV=production
-      - DB_HOST=db
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - DB_NAME=${POSTGRES_DB}
+    image: rgi_be
+    container_name: rgc_be
     ports:
-      - "3100:3100"  # Expose backend port
+    - "3100:3100"
     volumes:
       - ./backend:/backend
-      - /backend/node_modules
     depends_on:
       - db
     networks:
@@ -51,15 +43,17 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: dockerfile_frontend
+      dockerfile: frontend/Dockerfile
+    image: rgi_fe
+    container_name: rgc_fe
     ports:
-      - "3200:3200"  # Expose frontend port
+      - "80:3000"  # Expose frontend port
     volumes:
       - ./frontend:/frontend
-      - /frontend/node_modules
+#      - /frontend/node_modules
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=https://api.cryptafe.com
+      - REACT_APP_API_URL=https://cryptafe.com
     depends_on:
       - backend
     networks:
@@ -70,5 +64,5 @@ networks:
   rgnetwork:
     driver: bridge
 
-volumes:
-  postgres_data:
+
+
