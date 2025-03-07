@@ -20,8 +20,8 @@ services:
   # Node.js server
   backend:
     build:
-      context: .
-      dockerfile: dockerfile_backend
+      context: backend
+      dockerfile: Dockerfile
     image: rgi_be
     container_name: rgc_be
     ports:
