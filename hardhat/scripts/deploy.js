@@ -7,7 +7,7 @@
 //const hre = require("hardhat");
 
 const fs = require("fs");
-const contractsDir = __dirname + "/../frontend/src/contracts";
+const contractsDir = __dirname + "/../../frontend/src/contracts";
 
 async function main() {
   // This is just a convenience check

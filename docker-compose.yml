@@ -5,7 +5,8 @@ services:
   # PostgreSQL database
   db:
     build:
-      dockerfile: db/Dockerfile
+      context: db
+      dockerfile: Dockerfile
       args:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -39,6 +40,22 @@ services:
       timeout: 10s
       retries: 3
 
+  # Hardhat service
+  hardhat:
+    build:
+      context: ./hardhat
+      dockerfile: Dockerfile
+    image: rgi_hh
+    container_name: rgc_hh
+    ports:
+      - "8545:8545"  # Expose Hardhat node port
+    networks:
+      - rgnetwork
+    volumes:
+      - ./hardhat:/hardhat  # Bind host's ./hardhat to container's /hardhat
+    depends_on:
+      - db  # Ensure database is started before Hardhat (if needed)
+
   # React application
   frontend:
     build:
@@ -56,6 +73,7 @@ services:
       - REACT_APP_API_URL=https://cryptafe.com
     depends_on:
       - backend
+#      - hardhat
     networks:
       - rgnetwork
     restart: unless-stopped
