@@ -320,7 +320,7 @@ const AccountBalance = () => {
         <div>
           <Row>
             <Col xs={6} sm={6} md={6} lg={6} xl={6}>
-              <SendMoney />
+            <TransferFund />
             </Col>
             <Col xs={6} sm={6} md={6} lg={6} xl={6}>
               <Withdraw />
@@ -328,7 +328,7 @@ const AccountBalance = () => {
           </Row>
         </div>
         <div>
-          <TransferFund />
+        <SendMoney />
         </div>
       </div>
       <div className="transaction-history">

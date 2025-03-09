@@ -9,8 +9,6 @@ import ContractBalance from "./ContractBalance";
 import TransactionInfo from "./TransactionInfo";
 import ChooseWinner from "./ChooseWinner";
 
-
-
 import SCListeners from "./SCListeners";
 
 //import { BLOCKCHAIN_PROVIDER_URL } from "../config";
@@ -53,17 +51,26 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p onClick={() => getContractBalance()}>
-          Royal Grow! {totalCredited} ETH
+          Royal GrowTh! {totalCredited} ETH
           <br />
           {now}.
         </p>
       </header>
 
-      <AccountBalance />
+      <main className="main-content">
+        <div className="dashboard-section balance-section">
+          <AccountBalance />
+        </div>
 
-      <TransactionInfo />
-      <ChooseWinner />
-      
+        <div className="dashboard-section transactions-section">
+          <TransactionInfo />
+        </div>
+
+        <div className="dashboard-section winner-section">
+          <ChooseWinner />
+        </div>
+      </main>
+
       <Row>
         <Col xs={8} sm={8} md={8} lg={8} xl={8}>
           <SCListeners />

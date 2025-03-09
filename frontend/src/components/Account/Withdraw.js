@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { AppContext } from "../AppContext";
 import "./Withdraw.css";
+import "../../styles/components/forms.css";
+
 import {
   getWalletSelectedAccount,
   etherToWei,
@@ -24,6 +26,9 @@ const Withdraw = () => {
   const [withdrowedIndex, setWithdrowedIndex] = useState(0);
   const [encryotedDC, setEncryotedDC] = useState();
   const [clearDC, setClearDC] = useState();
+  const [isShowingClearData, setIsShowingClearData] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   function hexStringToBytes(hexString) {
     // Remove '0x' prefix if present
@@ -90,22 +95,51 @@ const Withdraw = () => {
 
   };
 
-  const getLatestGuaranteeDC = async () => {
-    let currentSerialNumber = await globData.royalGrowcontractInstance.methods
-      .getDCCurrentSerialNumber()
-      .call();
+  const safeUpdateTextArea = (ref, value) => {
+    if (ref.current) {
+      ref.current.value = value;
+    }
+  };
 
-    const selectedAccount = await getWalletSelectedAccountByWalletSigner(
-      globData
-    );
-    const paymentInfo = await getFromBE("dc/getLatestGuaranteeDC", {
-      creditor: selectedAccount.address.toLowerCase(),
-      serialNumber: currentSerialNumber,
-    });
-    setEncryotedDC(paymentInfo.data.encryotedDC);
-    textAreaRefEnc.current.value = paymentInfo.data.encryotedDC;
-    setClearDC(paymentInfo.data.clearDC);
-    textAreaRefClr.current.value = paymentInfo.data.clearDC;
+  const handleEncryptedChange = (e) => {
+    if (textAreaRefEnc.current) {
+      textAreaRefEnc.current.value = e.target.value;
+      setEncryotedDC(e.target.value);
+    }
+  };
+
+  const handleClearChange = (e) => {
+    if (textAreaRefClr.current) {
+      textAreaRefClr.current.value = e.target.value;
+      setClearDC(e.target.value);
+    }
+  };
+
+  const getLatestGuaranteeDC = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      let currentSerialNumber = await globData.royalGrowcontractInstance.methods
+        .getDCCurrentSerialNumber()
+        .call();
+
+      const selectedAccount = await getWalletSelectedAccountByWalletSigner(globData);
+      const paymentInfo = await getFromBE("dc/getLatestGuaranteeDC", {
+        creditor: selectedAccount.address.toLowerCase(),
+        serialNumber: currentSerialNumber,
+      });
+      
+      setEncryotedDC(paymentInfo.data.encryotedDC);
+      setClearDC(paymentInfo.data.clearDC);
+      
+      safeUpdateTextArea(textAreaRefEnc, paymentInfo.data.encryotedDC);
+      safeUpdateTextArea(textAreaRefClr, paymentInfo.data.clearDC);
+    } catch (error) {
+      console.error('Error fetching guarantee DC:', error);
+      setError('Failed to fetch guarantee data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetWithdrawed = async () => {
@@ -254,32 +288,73 @@ const Withdraw = () => {
         <button onClick={getWithdrowedByIndex}>Withdraw info</button>
         <button onClick={resetWithdrawed}>reset Withdrawed</button>
       </div>
-      <div className="guaranteeDC">
-        <h6 onClick={getLatestGuaranteeDC}>Your Guarantee DC</h6>
-        <div className="fWithCntnr">
-          Encrypted:
-          <textarea
-            id="wrappedTextInputEnc"
-            rows="2"
-            cols="30"
-            onChange={(e) => {
-              textAreaRefEnc.current.value = e.target.value;
-            }}
-            ref={textAreaRefEnc}
-          ></textarea>
-          <button onClick={applyFullWithdraw}>Apply Full Withdraw</button>
+      <div className={`guaranteeDC form-container ${isLoading ? 'is-loading' : ''}`}>
+        <div className="guarantee-header">
+          <button 
+            className="guarantee-refresh-button"
+            onClick={getLatestGuaranteeDC}
+          >
+            <span className="button-text">Your Guarantee DC</span>
+            <span className="button-icon">↻</span>
+          </button>
         </div>
-        <div>
-          Clear:
-          <textarea
-            id="wrappedTextInputClear"
-            rows="2"
-            cols="30"
-            onChange={(e) => {
-              textAreaRefClr.current.value = e.target.value;
-            }}
-            ref={textAreaRefClr}
-          ></textarea>
+
+        {error && (
+          <div className="guarantee-error">
+            <span className="error-icon">⚠️</span>
+            {error}
+          </div>
+        )}
+
+        <div className="guarantee-content">
+          <div className="guarantee-field">
+            <label className="guarantee-label">
+              <span className="label-text">Encrypted Data</span>
+              <div className="field-container">
+                <textarea
+                  id="wrappedTextInputEnc"
+                  className="guarantee-textarea"
+                  rows="2"
+                  value={encryotedDC || ''}
+                  placeholder="Encrypted guarantee data will appear here..."
+                  onChange={handleEncryptedChange}
+                  ref={textAreaRefEnc}
+                />
+                <button 
+                  className="guarantee-button button-primary"
+                  onClick={applyFullWithdraw}
+                >
+                  Apply Full Withdraw
+                </button>
+              </div>
+            </label>
+          </div>
+
+          <div className="guarantee-field clear-data-section">
+            <button 
+              className={`toggle-clear-data-button ${isShowingClearData ? 'active' : ''}`}
+              onClick={() => setIsShowingClearData(!isShowingClearData)}
+            >
+              <span className="button-text">Clear Data</span>
+              <span className="toggle-icon">{isShowingClearData ? '−' : '+'}</span>
+            </button>
+            
+            {isShowingClearData && (
+              <div className="clear-data-content animate-slide-down">
+                <label className="guarantee-label">
+                  <textarea
+                    id="wrappedTextInputClear"
+                    className="guarantee-textarea"
+                    rows="2"
+                    value={clearDC || ''}
+                    placeholder="Clear guarantee data will appear here..."
+                    onChange={handleClearChange}
+                    ref={textAreaRefClr}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
