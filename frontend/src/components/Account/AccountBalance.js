@@ -159,7 +159,7 @@ const AccountBalance = () => {
       serialNumber: currentSerialNumber,
       account: selectedAccount.address,
     });
-    console.log("makeFullRGCD info", rGCD);
+    console.log("make Full RGCD info", rGCD);
     if (rGCD) setFullDC(rGCD.data);
   };
 

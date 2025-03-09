@@ -78,6 +78,27 @@ services:
       - rgnetwork
     restart: unless-stopped
 
+  # pgAdmin (Web UI for PostgreSQL)
+  pgadmin:
+    build:
+      context: pgadmin
+      dockerfile: Dockerfile
+      args:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    image: rgi_pgadmin
+    container_name: rgc_pgadmin
+    ports:
+      - "5050:80"  # Expose pgAdmin on port 5050
+#    environment:
+#      - PGADMIN_DEFAULT_EMAIL=admin@cryptafe.com
+#      - PGADMIN_DEFAULT_PASSWORD=admin123  # Change this in production!
+    depends_on:
+      - db
+    networks:
+      - rgnetwork
+    restart: unless-stopped
+
 networks:
   rgnetwork:
     driver: bridge
