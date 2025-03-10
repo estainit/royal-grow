@@ -30,6 +30,11 @@ const Withdraw = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [errors, setErrors] = useState({
+    message: "",
+    amount: ""
+  });
+
   function hexStringToBytes(hexString) {
     // Remove '0x' prefix if present
     if (hexString.slice(0, 2) === "0x") {
@@ -149,21 +154,37 @@ const Withdraw = () => {
     console.log("reset Withdrawed res:", tx);
   };
 
-  const handleWithdraw = async () => {
-    if (!globData.web3 || !message || !amount) {
-      console.error("Missing required data");
-      return;
+  const validateForm = () => {
+    const newErrors = {
+      message: "",
+      amount: ""
+    };
+
+    // Validate message
+    if (!message) {
+      newErrors.message = "Message is required";
     }
 
-    // Request user confirmation to sign message
-    try {
-      const signer = await getWalletSelectedAccountByWalletSigner(globData);
+    // Validate amount
+    if (!amount) {
+      newErrors.amount = "Amount is required";
+    } else if (isNaN(amount) || parseFloat(amount) <= 0) {
+      newErrors.amount = "Please enter a valid amount";
+    }
 
-      console.log("iiii   amount wei: ", amount);
-      console.log("iiii   amount eth: ", weiToEther(amount));
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== "");
+  };
+
+  const handleWithdraw = async () => {
+    if (!globData.web3 || !validateForm()) return;
+
+    try {
+      setIsLoading(true);
+      const signer = await getWalletSelectedAccountByWalletSigner(globData);
+      const address = await signer.getAddress();
 
       const msgToBeSigned = "withdraw" + message;
-      const address = await signer.getAddress();
       const signature = await window.ethereum.request({
         method: "personal_sign",
         params: [globData.web3.utils.keccak256(msgToBeSigned), address],
@@ -177,18 +198,22 @@ const Withdraw = () => {
           signature
         )
         .send({ from: address.toLowerCase() });
-      console.log("Withdrow res:", tx);
 
-      /**
-      const tx = await globData.royalGrowcontractInstance.methods
-        .withdraw(message, etherToWei(amount), signature)
-        .send({
-          from: address,
-        });
-      console.log("Transaction hash:", tx.transactionHash);
-       */
+      // Show success message
+      console.log("Withdrawal initiated successfully!");
+      
+      // Reset form
+      setMessage("");
+      setAmount("");
+      setErrors({
+        message: "",
+        amount: ""
+      });
     } catch (error) {
       console.error("Error signing or sending transaction:", error);
+      alert("Error processing withdrawal: " + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -262,99 +287,141 @@ const Withdraw = () => {
   }, [globData]);
 
   return (
-    <div className="withdrow-fund">
-      <div>
-        <input
-          type="text"
-          placeholder="Enter message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Enter amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <button onClick={handleWithdraw}>Withdraw</button>
-      </div>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter index"
-          value={withdrowedIndex}
-          onChange={(e) => setWithdrowedIndex(e.target.value)}
-        />
-        <button onClick={getWithdrowedByIndex}>Withdraw info</button>
-        <button onClick={resetWithdrawed}>reset Withdrawed</button>
-      </div>
-      <div className={`guaranteeDC form-container ${isLoading ? 'is-loading' : ''}`}>
-        <div className="guarantee-header">
-          <button 
-            className="guarantee-refresh-button"
-            onClick={getLatestGuaranteeDC}
-          >
-            <span className="button-text">Your Guarantee DC</span>
-            <span className="button-icon">↻</span>
-          </button>
-        </div>
-
-        {error && (
-          <div className="guarantee-error">
-            <span className="error-icon">⚠️</span>
-            {error}
-          </div>
-        )}
-
-        <div className="guarantee-content">
-          <div className="guarantee-field">
-            <label className="guarantee-label">
-              <span className="label-text">Encrypted Data</span>
-              <div className="field-container">
-                <textarea
-                  id="wrappedTextInputEnc"
-                  className="guarantee-textarea"
-                  rows="2"
-                  value={encryotedDC || ''}
-                  placeholder="Encrypted guarantee data will appear here..."
-                  onChange={handleEncryptedChange}
-                  ref={textAreaRefEnc}
-                />
-                <button 
-                  className="guarantee-button button-primary"
-                  onClick={applyFullWithdraw}
-                >
-                  Apply Full Withdraw
-                </button>
-              </div>
+    <div className="withdraw-container">
+      <div className="withdrow-fund">
+        <h2 className="withdraw-title">Withdraw Funds</h2>
+        <div className="withdraw-form">
+          <div className="form-group">
+            <label className="form-label">
+              Message
+              <input
+                type="text"
+                className={`form-input ${errors.message ? 'error' : ''}`}
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  if (errors.message) {
+                    setErrors(prev => ({ ...prev, message: "" }));
+                  }
+                }}
+                placeholder="Enter withdrawal message"
+                disabled={isLoading}
+              />
+              {errors.message && (
+                <span className="error-message">{errors.message}</span>
+              )}
             </label>
           </div>
 
-          <div className="guarantee-field clear-data-section">
-            <button 
-              className={`toggle-clear-data-button ${isShowingClearData ? 'active' : ''}`}
-              onClick={() => setIsShowingClearData(!isShowingClearData)}
-            >
-              <span className="button-text">Clear Data</span>
-              <span className="toggle-icon">{isShowingClearData ? '−' : '+'}</span>
-            </button>
-            
-            {isShowingClearData && (
-              <div className="clear-data-content animate-slide-down">
-                <label className="guarantee-label">
-                  <textarea
-                    id="wrappedTextInputClear"
-                    className="guarantee-textarea"
-                    rows="2"
-                    value={clearDC || ''}
-                    placeholder="Clear guarantee data will appear here..."
-                    onChange={handleClearChange}
-                    ref={textAreaRefClr}
-                  />
-                </label>
+          <div className="form-group">
+            <label className="form-label">
+              Amount
+              <div className="amount-input-wrapper">
+                <input
+                  type="number"
+                  className={`form-input amount-input ${errors.amount ? 'error' : ''}`}
+                  value={amount}
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                    if (errors.amount) {
+                      setErrors(prev => ({ ...prev, amount: "" }));
+                    }
+                  }}
+                  placeholder="0.00"
+                  min="0"
+                  step="0.000000000000000001"
+                  disabled={isLoading}
+                />
+                <span className="currency-label">ETH</span>
               </div>
-            )}
+              {errors.amount && (
+                <span className="error-message">{errors.amount}</span>
+              )}
+            </label>
           </div>
+
+          <button 
+            className={`withdraw-button ${isLoading ? 'loading' : ''}`}
+            onClick={handleWithdraw}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="spinner"></span>
+                Processing...
+              </>
+            ) : (
+              'Withdraw Funds'
+            )}
+          </button>
+        </div>
+      </div>
+      
+      <div className="guarantee-container">
+        <div className="guarantee-section">
+          <div 
+            className="guarantee-title"
+            onClick={() => setIsShowingClearData(!isShowingClearData)}
+          >
+            <span>Guarantee DC</span>
+            <span className="toggle-icon">{isShowingClearData ? '▼' : '▶'}</span>
+          </div>
+          
+          {isShowingClearData && (
+            <div className="guarantee-content">
+              <button 
+                className="withdraw-button"
+                onClick={getLatestGuaranteeDC}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Loading...
+                  </>
+                ) : (
+                  'Refresh Guarantee DC'
+                )}
+              </button>
+
+              <div className="guarantee-field">
+                <label className="form-label">Encrypted Data</label>
+                <textarea
+                  ref={textAreaRefEnc}
+                  value={encryotedDC}
+                  onChange={handleEncryptedChange}
+                  placeholder="Encrypted data will appear here..."
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="guarantee-field">
+                <label className="form-label">Clear Data</label>
+                <textarea
+                  ref={textAreaRefClr}
+                  value={clearDC}
+                  onChange={handleClearChange}
+                  placeholder="Clear data will appear here..."
+                  disabled={isLoading}
+                />
+              </div>
+
+              <button 
+                className={`withdraw-button ${isLoading ? 'loading' : ''}`}
+                onClick={applyFullWithdraw}
+                disabled={isLoading || !encryotedDC || !clearDC}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Processing...
+                  </>
+                ) : (
+                  'Apply Full Withdrawal'
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
