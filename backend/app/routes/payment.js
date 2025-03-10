@@ -14,6 +14,7 @@ const {
 } = require("../entity/rg_payments_to_contract");
 
 const { logWithdraw } = require("../entity/rg_withdraw_logs");
+const { getTransactionHistory } = require("../entity/rg_transaction_log");
 
 router.post("/payToContract", async (req, res) => {
   console.log("payToContract", req.body);
@@ -122,6 +123,34 @@ router.post("/doTransferFund", async (req, res) => {
     message: data.msg,
     success: data.stat,
   });
+});
+
+router.get("/transaction/history", async (req, res) => {
+  try {
+    const address = req.query.address;
+    if (!address) {
+      return res.status(400).json({
+        data: null,
+        message: "Address is required",
+        success: false,
+      });
+    }
+
+    const transactions = await getTransactionHistory(address);
+    
+    res.status(200).json({
+      data: transactions,
+      message: "Transaction history fetched successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error fetching transaction history:", error);
+    res.status(500).json({
+      data: null,
+      message: "Failed to fetch transaction history",
+      success: false,
+    });
+  }
 });
 
 module.exports = router;

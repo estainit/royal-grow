@@ -30,6 +30,57 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    display: none;
+    opacity: 0;
+  }
+  
+  .transaction-history.visible {
+    display: block;
+    opacity: 1;
+  }
+  
+  .transaction-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+  }
+  
+  .transaction-history-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .transaction-history-header i {
+    font-size: 1.1rem;
+    color: #64748b;
+    transition: transform 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
+  }
+  
+  .transaction-history-header i:hover {
+    background-color: #f1f5f9;
+    color: #3b82f6;
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .transaction-history-header h5 {
+      color: #f3f4f6;
+    }
+    
+    .transaction-history-header i {
+      color: #9ca3af;
+    }
+    
+    .transaction-history-header i:hover {
+      background-color: #374151;
+      color: #60a5fa;
+    }
   }
   
   .transaction-history h6 {
@@ -78,13 +129,12 @@
   }
   
   .transaction-history h5 {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #4a5568;
-    margin: 0 0 1rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
   }
   
   .record-list {
@@ -557,6 +607,86 @@
     opacity: 1;
   }
 
+  .detailed-credits-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+
+  .detailed-credits-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .detailed-credits-header i {
+    font-size: 1.1rem;
+    color: #64748b;
+    transition: transform 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
+  }
+
+  .detailed-credits-header i:hover {
+    background-color: #f1f5f9;
+    color: #3b82f6;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .detailed-credits-header h5 {
+      color: #f3f4f6;
+    }
+
+    .detailed-credits-header i {
+      color: #9ca3af;
+    }
+
+    .detailed-credits-header i:hover {
+      background-color: #374151;
+      color: #60a5fa;
+    }
+  }
+
+  .onchain-records-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .onchain-records-header h6 {
+    margin: 0;
+  }
+
+  .onchain-records-header i {
+    font-size: 0.9rem;
+    color: #64748b;
+    transition: transform 0.3s ease;
+    padding: 0.25rem;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .onchain-records-header i:hover {
+    background-color: #f1f5f9;
+    color: #3b82f6;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .onchain-records-header i {
+      color: #9ca3af;
+    }
+
+    .onchain-records-header i:hover {
+      background-color: #374151;
+      color: #60a5fa;
+    }
+  }
+
   .balance-breakdown h6 {
     font-size: 1rem;
     font-weight: 600;
@@ -766,5 +896,75 @@
     
     .transfer-button {
       padding: 0.75rem 1.25rem;
+    }
+  }
+
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #64748b;
+  }
+
+  .loading-spinner p {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .status-badge.completed {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-badge.failed {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .transaction-history {
+      background: #1f2937;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .transaction-history h5 {
+      color: #f3f4f6;
+      border-bottom-color: #374151;
+    }
+
+    .loading-spinner {
+      color: #9ca3af;
+    }
+
+    .status-badge.completed {
+      background-color: #064e3b;
+      color: #6ee7b7;
+    }
+
+    .status-badge.pending {
+      background-color: #92400e;
+      color: #fcd34d;
+    }
+
+    .status-badge.failed {
+      background-color: #991b1b;
+      color: #fca5a5;
     }
   }

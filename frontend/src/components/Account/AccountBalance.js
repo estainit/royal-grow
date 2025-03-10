@@ -30,6 +30,10 @@ const AccountBalance = () => {
   const [proofVerifiyResults, setProofVerifiyResults] = useState({});
   const [creditVerifiyResults, setCreditVerifiyResults] = useState({});
   const [withdrawed, setWithdrawed] = useState({});
+  const [transactions, setTransactions] = useState([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [isDetailedCreditsVisible, setIsDetailedCreditsVisible] = useState(false);
+  const [isTransactionHistoryVisible, setIsTransactionHistoryVisible] = useState(true);
 
   const fetchOffchainPayedToContract = async () => {
     const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(
@@ -88,6 +92,30 @@ const AccountBalance = () => {
     }
   };
 
+  const fetchTransactionHistory = async () => {
+    if (!globData) return;
+    
+    setIsLoadingTransactions(true);
+    try {
+      const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(globData);
+      const address = selectedAccount_.address.toLowerCase();
+      
+      // Fetch transactions from backend
+      const response = await getFromBE("payment/transaction/history", {
+        address: address
+      });
+
+      if (response && response.data) {
+        setTransactions(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching transaction history:", error);
+      setError("Failed to load transaction history");
+    } finally {
+      setIsLoadingTransactions(false);
+    }
+  };
+
   useEffect(() => {
     if (!globData) return;
 
@@ -97,9 +125,9 @@ const AccountBalance = () => {
         await fetchOffchainPayedToContract();
         await fetchRGCredit();
         await fetchOnchainBalance();
+        await fetchTransactionHistory();
       } catch (error) {
-        console.error("Error sending money:", error);
-        // Handle error appropriately (e.g., display error message)
+        console.error("Error initializing:", error);
       } finally {
         setIsLoading(false);
       }
@@ -161,14 +189,23 @@ const AccountBalance = () => {
       account: selectedAccount.address,
     });
     console.log("make Full RGCD info", rGCD);
-    if (rGCD) setFullDC(rGCD.data);
+    if (rGCD) {
+      setFullDC(rGCD.data);
+      setIsDetailedCreditsVisible(true);
+    }
   };
 
   return (
     <div className="transaction-container">
       <div className="account-info">
         <div className="balance-breakdown">
-          <h6 onClick={makeFullRGCD}>Onchain Records</h6>
+          <div className="onchain-records-header">
+            <h6 onClick={makeFullRGCD}>Onchain Records</h6>
+            <i 
+              className={`fas ${isDetailedCreditsVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}
+              onClick={() => setIsDetailedCreditsVisible(!isDetailedCreditsVisible)}
+            ></i>
+          </div>
           <p
             onClick={() => fetchOnchainBalance()}
             title={onchainCredit + " wei"}
@@ -198,136 +235,200 @@ const AccountBalance = () => {
         </div>
       </div>
 
-      <div className="transaction-history">
-        <div className={`detailed-credits ${fullDC.records.length > 0 ? 'visible' : ''}`}>
+      <div className={`detailed-credits ${fullDC.records.length > 0 && isDetailedCreditsVisible ? 'visible' : ''}`}>
+        <div className="detailed-credits-header">
           <h5>Your crdits for ({fullDC.root})</h5>
-          <ul className="record-list">
-            <li key={"0000"} className="record-item-head1">
-              <div className="record-item-label">
-                <p> </p>
-              </div>
-              <div className="record-item-label">
-                <p>Records:</p>
-              </div>
-              <div className="record-item-label">
-                <p>Amount:</p>
-              </div>
-              <div className="record-item-label">
-                <p>Prove Proof:</p>
-              </div>
-              <div className="record-item-label">
-                <p>Prove Credit:</p>
-              </div>
-            </li>
+        </div>
+        <ul className="record-list">
+          <li key={"0000"} className="record-item-head1">
+            <div className="record-item-label">
+              <p> </p>
+            </div>
+            <div className="record-item-label">
+              <p>Records:</p>
+            </div>
+            <div className="record-item-label">
+              <p>Amount:</p>
+            </div>
+            <div className="record-item-label">
+              <p>Prove Proof:</p>
+            </div>
+            <div className="record-item-label">
+              <p>Prove Credit:</p>
+            </div>
+          </li>
 
-            {fullDC.records.map((aRecord, index) => (
-              <li
-                key={`${aRecord.uniqKey}-${index}`} // Using combination of uniqKey and index as key
-                className="record-item"
-                title={`proofs: ${aRecord.proofs}, Clear Record: ${aRecord.clearRecord}`}
-              >
-                <div className="record-item-label">
-                  <p>{index + 1}</p>
-                </div>
-                <div className="record-item-label">
-                  <p>{aRecord.obfRecord}</p>
-                </div>
-                <div className="record-item-label">
-                  <p>{aRecord.amount}</p>
-                </div>
-                <div className="record-item-label">
-                  <p>
-                    <button
-                      onClick={() =>
-                        verifyProof(
-                          aRecord.uniqKey,
-                          aRecord.obfRecord,
-                          aRecord.proofs
-                        )
-                      }
-                      className={
-                        proofVerifiyResults[aRecord.uniqKey] === true
-                          ? "green-button"
-                          : proofVerifiyResults[aRecord.uniqKey] === false
-                          ? "red-button"
-                          : ""
-                      }
-                    >
-                      <i className="fas fa-check-circle"></i>
-                      Verify Proof
-                    </button>
-                  </p>
-                </div>
-                <div className="record-item-label">
-                  <p>
-                    <button
-                      onClick={() =>
-                        verifyCredit(aRecord.clearRecord, aRecord.proofs)
-                      }
-                      className={
-                        creditVerifiyResults[aRecord.clearRecord] === true
-                          ? "green-button"
-                          : creditVerifiyResults[aRecord.clearRecord] === false
-                          ? "red-button"
-                          : ""
-                      }
-                    >
-                      <i className="fas fa-file-invoice-dollar"></i> Verify Credit
-                    </button>
-                    <button
-                      onClick={() => alreadyWithdrawed(aRecord.obfRecord)}
-                      className={
-                        withdrawed[aRecord.obfRecord] === false
-                          ? "green-button"
-                          : withdrawed[aRecord.obfRecord] === true
-                          ? "red-button"
-                          : ""
-                      }
-                    >
-                      <i className="fas fa-wallet"></i> Available
-                    </button>
-                  </p>
-                </div>
-              </li>
-            ))}
-            <li key={"0000end"} className="record-item-head1">
+          {fullDC.records.map((aRecord, index) => (
+            <li
+              key={`${aRecord.uniqKey}-${index}`}
+              className="record-item"
+              title={`proofs: ${aRecord.proofs}, Clear Record: ${aRecord.clearRecord}`}
+            >
               <div className="record-item-label">
-                <p> </p>
+                <p>{index + 1}</p>
               </div>
               <div className="record-item-label">
-                <p>Amount:</p>
+                <p>{aRecord.obfRecord}</p>
+              </div>
+              <div className="record-item-label">
+                <p>{aRecord.amount}</p>
               </div>
               <div className="record-item-label">
                 <p>
-                  {numberWithCommas(
-                    fullDC.records.reduce(
-                      (accumulator, currentRecord) =>
-                        accumulator + parseInt(currentRecord.amount),
-                      0
-                    )
-                  )}{" "}
-                  wei ={" "}
-                  {weiToEther(
-                    fullDC.records.reduce(
-                      (accumulator, currentRecord) =>
-                        accumulator + parseInt(currentRecord.amount),
-                      0
-                    )
-                  )}{" "}
-                  ETH
+                  <button
+                    onClick={() =>
+                      verifyProof(
+                        aRecord.uniqKey,
+                        aRecord.obfRecord,
+                        aRecord.proofs
+                      )
+                    }
+                    className={
+                      proofVerifiyResults[aRecord.uniqKey] === true
+                        ? "green-button"
+                        : proofVerifiyResults[aRecord.uniqKey] === false
+                        ? "red-button"
+                        : ""
+                    }
+                  >
+                    <i className="fas fa-check-circle"></i>
+                    Verify Proof
+                  </button>
                 </p>
               </div>
               <div className="record-item-label">
-                <p> </p>
-              </div>
-              <div className="record-item-label">
-                <p> </p>
+                <p>
+                  <button
+                    onClick={() =>
+                      verifyCredit(aRecord.clearRecord, aRecord.proofs)
+                    }
+                    className={
+                      creditVerifiyResults[aRecord.clearRecord] === true
+                        ? "green-button"
+                        : creditVerifiyResults[aRecord.clearRecord] === false
+                        ? "red-button"
+                        : ""
+                    }
+                  >
+                    <i className="fas fa-file-invoice-dollar"></i> Verify Credit
+                  </button>
+                  <button
+                    onClick={() => alreadyWithdrawed(aRecord.obfRecord)}
+                    className={
+                      withdrawed[aRecord.obfRecord] === false
+                        ? "green-button"
+                        : withdrawed[aRecord.obfRecord] === true
+                        ? "red-button"
+                        : ""
+                    }
+                  >
+                    <i className="fas fa-wallet"></i> Available
+                  </button>
+                </p>
               </div>
             </li>
-          </ul>
-        </div>
+          ))}
+          <li key={"0000end"} className="record-item-head1">
+            <div className="record-item-label">
+              <p> </p>
+            </div>
+            <div className="record-item-label">
+              <p>Amount:</p>
+            </div>
+            <div className="record-item-label">
+              <p>
+                {numberWithCommas(
+                  fullDC.records.reduce(
+                    (accumulator, currentRecord) =>
+                      accumulator + parseInt(currentRecord.amount),
+                    0
+                  )
+                )}{" "}
+                wei ={" "}
+                {weiToEther(
+                  fullDC.records.reduce(
+                    (accumulator, currentRecord) =>
+                      accumulator + parseInt(currentRecord.amount),
+                    0
+                  )
+                )}{" "}
+                ETH
+              </p>
+            </div>
+            <div className="record-item-label">
+              <p> </p>
+            </div>
+            <div className="record-item-label">
+              <p> </p>
+            </div>
+          </li>
+        </ul>
       </div>
-      
+
+      <div className="transaction-history-header">
+        <h5>Transaction History</h5>
+        <i 
+          className={`fas ${isTransactionHistoryVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}
+          onClick={() => setIsTransactionHistoryVisible(!isTransactionHistoryVisible)}
+        ></i>
+      </div>
+
+      <div className={`transaction-history ${isTransactionHistoryVisible ? 'visible' : ''}`}>
+        {isLoadingTransactions ? (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Loading transactions...</p>
+          </div>
+        ) : error ? (
+          <div className="error-message">{error}</div>
+        ) : transactions.length === 0 ? (
+          <p>No transactions found</p>
+        ) : (
+          <ul className="record-list">
+            <li className="record-item-head1">
+              <div className="record-item-label">
+                <p>Date</p>
+              </div>
+              <div className="record-item-label">
+                <p>Type</p>
+              </div>
+              <div className="record-item-label">
+                <p>Amount</p>
+              </div>
+              <div className="record-item-label">
+                <p>Status</p>
+              </div>
+              <div className="record-item-label">
+                <p>Details</p>
+              </div>
+            </li>
+            {transactions.map((transaction, index) => (
+              <li key={transaction.id || index} className="record-item">
+                <div className="record-item-label">
+                  <p>{new Date(transaction.timestamp).toLocaleDateString()}</p>
+                </div>
+                <div className="record-item-label">
+                  <p>{transaction.type}</p>
+                </div>
+                <div className="record-item-label">
+                  <p>{weiToEther(transaction.amount)} ETH</p>
+                </div>
+                <div className="record-item-label">
+                  <p>
+                    <span className={`status-badge ${transaction.status.toLowerCase()}`}>
+                      {transaction.status}
+                    </span>
+                  </p>
+                </div>
+                <div className="record-item-label">
+                  <p>{transaction.details || '-'}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="user-mgmt">
         <div>
           <Row>
@@ -342,26 +443,6 @@ const AccountBalance = () => {
         <div>
         <SendMoney />
         </div>
-      </div>
-      <div className="transaction-history">
-        <Row className="txHistory header">
-          <Col xs={1} sm={1} md={1} lg={1} xl={1}>
-            No
-          </Col>
-          <Col xs={1} sm={1} md={1} lg={1} xl={1}>
-            Direction
-          </Col>
-          <Col xs={1} sm={1} md={1} lg={1} xl={1}>
-            From/To
-          </Col>
-          <Col xs={1} sm={1} md={1} lg={1} xl={1}>
-            Amount
-          </Col>
-          <Col xs={1} sm={1} md={1} lg={1} xl={1}>
-            Date
-          </Col>
-        </Row>
-        {/* Your transaction list items go here */}
       </div>
     </div>
   );
