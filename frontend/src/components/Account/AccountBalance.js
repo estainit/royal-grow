@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../AppContext";
 import { Row, Col } from "react-bootstrap";
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import {
   getWalletSelectedAccountByWalletSigner,
   getFromBE,
@@ -167,6 +168,7 @@ const AccountBalance = () => {
     <div className="transaction-container">
       <div className="account-info">
         <div className="balance-breakdown">
+          <h6 onClick={makeFullRGCD}>Onchain Records</h6>
           <p
             onClick={() => fetchOnchainBalance()}
             title={onchainCredit + " wei"}
@@ -195,12 +197,12 @@ const AccountBalance = () => {
           </p>
         </div>
       </div>
+
       <div className="transaction-history">
-        <h6 onClick={makeFullRGCD}>Onchain Records</h6>
-        <div className="detailed-credits">
+        <div className={`detailed-credits ${fullDC.records.length > 0 ? 'visible' : ''}`}>
           <h5>Your crdits for ({fullDC.root})</h5>
           <ul className="record-list">
-            <li key={"0000"} className="record-item">
+            <li key={"0000"} className="record-item-head1">
               <div className="record-item-label">
                 <p> </p>
               </div>
@@ -251,6 +253,7 @@ const AccountBalance = () => {
                           : ""
                       }
                     >
+                      <i className="fas fa-check-circle"></i>
                       Verify Proof
                     </button>
                   </p>
@@ -269,7 +272,7 @@ const AccountBalance = () => {
                           : ""
                       }
                     >
-                      Verify Credit
+                      <i className="fas fa-file-invoice-dollar"></i> Verify Credit
                     </button>
                     <button
                       onClick={() => alreadyWithdrawed(aRecord.obfRecord)}
@@ -281,13 +284,13 @@ const AccountBalance = () => {
                           : ""
                       }
                     >
-                      Available
+                      <i className="fas fa-wallet"></i> Available
                     </button>
                   </p>
                 </div>
               </li>
             ))}
-            <li key={"0000end"} className="record-item">
+            <li key={"0000end"} className="record-item-head1">
               <div className="record-item-label">
                 <p> </p>
               </div>
@@ -324,6 +327,7 @@ const AccountBalance = () => {
           </ul>
         </div>
       </div>
+      
       <div className="user-mgmt">
         <div>
           <Row>
