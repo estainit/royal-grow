@@ -1,5 +1,6 @@
 /* src/styles/App.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
 
 :root {
   --max-width: 1200px;
@@ -354,5 +355,181 @@ body {
   .dashboard-section {
     transition: none;
     transform: none !important;
+  }
+}
+
+.account-info {
+  font-size: 0.8em;
+  opacity: 0.8;
+  font-weight: normal;
+  margin: 0 0.2em;
+  vertical-align: middle;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .account-info {
+    opacity: 0.7;
+  }
+}
+
+.topLogoAndAccount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.topLogoAndAccount:hover {
+  opacity: 0.9;
+}
+
+.topLogoAndAccount .account-info {
+  font-size: 0.8em;
+  opacity: 0.8;
+  font-weight: normal;
+  margin: 0 0.2em;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .topLogoAndAccount {
+    font-size: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  
+  .topLogoAndAccount .account-info {
+    font-size: 0.75em;
+  }
+}
+
+.eth-amount {
+  font-weight: 500;
+  margin: 0 0.5rem;
+  color: var(--primary-200, #bfdbfe);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .eth-amount {
+    color: var(--primary-300, #93c5fd);
+  }
+}
+
+.timestamp {
+  font-size: 0.8em;
+  opacity: 0.6;
+  font-weight: normal;
+  margin-left: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .timestamp {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .timestamp {
+    font-size: 0.75em;
+    margin-left: 0.25rem;
+  }
+}
+
+/* Add these new styles for the logo */
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(
+    to right,
+    #ffd700,
+    #ffeb3b,
+    #ffd700
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  animation: shine 6s linear infinite;
+  letter-spacing: 0.5px;
+  position: relative;
+  display: inline-block;
+}
+
+.logo-text::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: shimmer 4s infinite;
+  transform-origin: center;
+  opacity: 0;
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) scale(1.2);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments for the logo */
+@media (max-width: 768px) {
+  .logo-text {
+    font-size: 1.5rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .logo-text {
+    background: linear-gradient(
+      to right,
+      #ffd700,
+      #ffeb3b,
+      #ffd700
+    );
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
   }
 }

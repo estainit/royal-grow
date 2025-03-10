@@ -166,11 +166,12 @@ const AccountBalance = () => {
   return (
     <div className="transaction-container">
       <div className="account-info">
-        <p>Selected Account: {selectedAccount.toLowerCase()}</p>
         <div className="balance-breakdown">
           <p
             onClick={() => fetchOnchainBalance()}
             title={onchainCredit + " wei"}
+            className="clickable-balance"
+            style={{cursor: 'pointer'}}
           >
             Credited (On chain): {weiToEther(onchainCredit)} Eth
           </p>
@@ -178,12 +179,19 @@ const AccountBalance = () => {
           <p
             onClick={() => fetchOffchainPayedToContract()}
             title={numberWithCommas(payedToContract) + " wei"}
+            className="clickable-balance"
+            style={{cursor: 'pointer'}}
           >
             Total payed to contract: {weiToEther(payedToContract)} Eth
           </p>
           <p>Spent: {spent} Eth</p>
-          <p onClick={() => fetchRGCredit()} title={rgCredit + " wei"}>
-            RG Credit: {weiToEther(rgCredit)} Eth = 5.09 $
+          <p 
+            onClick={() => fetchRGCredit()} 
+            title={rgCredit + " wei"}
+            className="clickable-balance"
+            style={{cursor: 'pointer'}}
+          >
+            RG Credit: {weiToEther(rgCredit)} ETH
           </p>
         </div>
       </div>
