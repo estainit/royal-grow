@@ -181,7 +181,7 @@ function AdminPanel() {
               key={elm.serialNumber}
               onClick={() => getDCDetail(elm.serialNumber)}
             >
-              {elm.serialNumber}: {elm.rootHash}{" "}
+              the DC {elm.serialNumber}: {elm.rootHash}{" "}
             </span>
           ))}
         </div>
@@ -218,7 +218,7 @@ function AdminPanel() {
             </>
           )}
         </button>
-        <button 
+        <button style={{visibility: 'hidden'}}
           onClick={makeFullRGCD} 
           disabled={isLoading}
           className="print-button"
@@ -236,7 +236,7 @@ function AdminPanel() {
             </>
           )}
         </button>
-        <input
+        <input style={{visibility: 'hidden'}}
           type="number"
           value={serialNumber}
           onChange={handleChangeSerialNumber}
