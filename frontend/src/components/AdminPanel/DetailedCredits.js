@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 
 const DetailedCredits = ({ fullDC }) => {
+  const [isListVisible, setIsListVisible] = useState(true);
+
   return (
     <div className="detailedCrdReport">
-      <h2>Full Records ({fullDC.root})</h2>
-      <ul className="record-list">
+      <div className="records-header" onClick={() => setIsListVisible(!isListVisible)}>
+        <h2>Full Records ({fullDC.root})</h2>
+        <i className={`fas ${isListVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+      </div>
+      <ul className={`record-list ${isListVisible ? 'visible' : 'hidden'}`}>
         <li key="0i0i" className="record-header">
           <div className="record-header-index">
             <p> </p>
