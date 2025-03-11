@@ -2,27 +2,171 @@
   font-size: 0.8rem; /* Reduce overall font size  */
   line-height: 1.2; /* Adjust line height for better readability */
   margin: 10px; /* Optional: Add some margin for spacing */
+  width: 100%;
 }
 
 .record-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100%;
 }
 
+/* Headers */
+.record-header {
+  display: flex;
+  padding: 10px 0; /* Remove horizontal padding from header container */
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+  font-weight: bold;
+}
+
+.record-header-index,
+.record-header-creditor,
+.record-header-clear-record,
+.record-header-obf-record,
+.record-header-proofs,
+.record-header-amount {
+  padding: 8px 15px; /* Add consistent padding to header cells */
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Column widths for headers */
+.record-header-index { width: 5%; }
+.record-header-creditor { width: 15%; }
+.record-header-clear-record { width: 22%; }
+.record-header-obf-record { width: 22%; }
+.record-header-proofs { width: 22%; }
+.record-header-amount { width: 14%; }
+
+/* Record items */
 .record-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
+  padding: 8px 0; /* Remove horizontal padding from item container */
   border-bottom: 1px solid #ddd;
+  align-items: center;
 }
 
-.record-item-label {
-  margin: 0 5px;
-  /* Adjust font-weight for labels as needed */
+.record-item-label-index,
+.record-item-label-creditor,
+.record-item-label-clear-record,
+.record-item-label-obf-record,
+.record-item-label-proofs,
+.record-item-label-amount {
+  padding: 8px 15px; /* Add consistent padding to content cells */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.record-item-label p:first-child {
-  font-weight: bold;
+/* Column widths for items matching headers */
+.record-item-label-index { 
+  width: 5%;
+  text-align: center;
+  font-weight: 500;
+}
+
+.record-item-label-creditor { 
+  width: 15%;
+  font-weight: 500;
+}
+
+.record-item-label-clear-record { 
+  width: 22%;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.record-item-label-obf-record { 
+  width: 22%;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.record-item-label-proofs { 
+  width: 22%;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.record-item-label-amount { 
+  width: 14%;
+  text-align: right;
+  font-family: monospace;
+}
+
+/* Hover effect */
+.record-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .record-header {
+    background-color: #1a237e;
+    color: #fff;
+    border-bottom-color: #3949ab;
+  }
+
+  .record-item {
+    border-bottom-color: #3949ab;
+  }
+
+  .record-item:hover {
+    background-color: #283593;
+  }
+
+  .record-item-label-index,
+  .record-item-label-creditor,
+  .record-item-label-clear-record,
+  .record-item-label-obf-record,
+  .record-item-label-proofs,
+  .record-item-label-amount {
+    color: #e0e0e0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .record-header,
+  .record-item {
+    font-size: 0.75rem;
+    padding: 6px 0;
+  }
+  
+  .record-header-index,
+  .record-header-creditor,
+  .record-header-clear-record,
+  .record-header-obf-record,
+  .record-header-proofs,
+  .record-header-amount,
+  .record-item-label-index,
+  .record-item-label-creditor,
+  .record-item-label-clear-record,
+  .record-item-label-obf-record,
+  .record-item-label-proofs,
+  .record-item-label-amount {
+    padding: 6px 10px;
+  }
+  
+  .record-item-label-index,
+  .record-header-index { width: 5%; }
+  
+  .record-item-label-creditor,
+  .record-header-creditor { width: 15%; }
+  
+  .record-item-label-clear-record,
+  .record-header-clear-record { width: 22%; }
+  
+  .record-item-label-obf-record,
+  .record-header-obf-record { width: 22%; }
+  
+  .record-item-label-proofs,
+  .record-header-proofs { width: 22%; }
+  
+  .record-item-label-amount,
+  .record-header-amount { width: 14%; }
 }

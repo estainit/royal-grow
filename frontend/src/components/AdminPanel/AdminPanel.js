@@ -26,11 +26,16 @@ function AdminPanel() {
 
   const makeFullRGCD = async () => {
     console.log("makeFullRGCD called with serialNumber:", serialNumber);
-    const rGCD = await getFromBE("dc/makeFullRGCD", { serialNumber });
-    console.log("makeFullRGCD response:", rGCD);
-    if (rGCD) {
-      console.log("Setting fullDC with data:", rGCD.data);
-      setFullDC(rGCD.data);
+    try {
+      const rGCD = await getFromBE("dc/makeFullRGCD", { serialNumber });
+      console.log("makeFullRGCD response:", rGCD);
+      if (rGCD) {
+        console.log("Setting fullDC with data:", rGCD.data);
+        setFullDC(rGCD.data);
+      }
+    } catch (error) {
+      console.error("Error in makeFullRGCD:", error);
+      setError(error.message);
     }
   };
 
@@ -139,8 +144,50 @@ function AdminPanel() {
   return (
     <div className="adminPanelContainer">
       <div className="getLast10DCRoots">
-        <button onClick={getLast10DCRoots} disabled={isLoading}>
-          {isLoading ? "Loading..." : "get last 10 DC Roots"}
+        <button 
+          onClick={getLast10DCRoots} 
+          disabled={isLoading}
+          className="update-button history-button"
+          title="Get the last 10 Detailed Credit roots"
+          style={{
+            backgroundColor: '#1a237e',
+            color: '#ffffff',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.9rem',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#283593'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#1a237e'}
+        >
+          {isLoading ? (
+            <>
+              <span className="loading-spinner" style={{
+                display: 'inline-block',
+                width: '16px',
+                height: '16px',
+                border: '2px solid #ffffff',
+                borderTop: '2px solid transparent',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></span>
+              Loading...
+            </>
+          ) : (
+            <>
+              <i className="fas fa-history" style={{
+                fontSize: '1.1rem',
+                color: '#ffffff'
+              }}></i>
+              Get Last 10 DC Roots
+            </>
+          )}
         </button>
         <div className="last10DCContainer">
           {last10DCRoots.map((elm) => (
@@ -154,22 +201,6 @@ function AdminPanel() {
         </div>
       </div>
 
-      <div className="button-container">
-        <button onClick={updateCreditsMerkleRoot} disabled={isLoading}>
-          {isLoading
-            ? "Loading..."
-            : "Update Credit Details Merkle Root (Every 5 minute)"}
-        </button>
-        <button onClick={makeFullRGCD} disabled={isLoading}>
-          {isLoading ? "Loading..." : "Print RGCD"}
-        </button>
-        <input
-          type="number"
-          value={serialNumber}
-          onChange={handleChangeSerialNumber}
-          placeholder="serialNumber"
-        />
-      </div>
 
       <div className="detailed-credits-container">
         {console.log("AdminPanel rendering with fullDC:", {
@@ -180,6 +211,53 @@ function AdminPanel() {
         })}
         <DetailedCredits fullDC={fullDC} />
       </div>
+
+
+      <div className="button-container">
+        <button 
+          onClick={updateCreditsMerkleRoot} 
+          disabled={isLoading}
+          className="update-button"
+          title="Update the merkle root of credit details (runs every 5 minutes)"
+        >
+          {isLoading ? (
+            <>
+              <span className="loading-spinner"></span>
+              Updating...
+            </>
+          ) : (
+            <>
+              <i className="fas fa-sync"></i>
+              Update Credits Root
+            </>
+          )}
+        </button>
+        <button 
+          onClick={makeFullRGCD} 
+          disabled={isLoading}
+          className="print-button"
+          title="Generate and print Royal Grow Credit Details"
+        >
+          {isLoading ? (
+            <>
+              <span className="loading-spinner"></span>
+              Generating...
+            </>
+          ) : (
+            <>
+              <i className="fas fa-print"></i>
+              Generate RGCD Report
+            </>
+          )}
+        </button>
+        <input
+          type="number"
+          value={serialNumber}
+          onChange={handleChangeSerialNumber}
+          placeholder="serialNumber"
+        />
+      </div>
+      
     </div>
   );
 }
