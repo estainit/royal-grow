@@ -147,44 +147,17 @@ function AdminPanel() {
         <button 
           onClick={getLast10DCRoots} 
           disabled={isLoading}
-          className="update-button history-button"
+          className="update-button history-button dc-history-btn"
           title="Get the last 10 Detailed Credit roots"
-          style={{
-            backgroundColor: '#1a237e',
-            color: '#ffffff',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.9rem',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#283593'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#1a237e'}
         >
           {isLoading ? (
             <>
-              <span className="loading-spinner" style={{
-                display: 'inline-block',
-                width: '16px',
-                height: '16px',
-                border: '2px solid #ffffff',
-                borderTop: '2px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></span>
+              <span className="loading-spinner"></span>
               Loading...
             </>
           ) : (
             <>
-              <i className="fas fa-history" style={{
-                fontSize: '1.1rem',
-                color: '#ffffff'
-              }}></i>
+              <i className="fas fa-history"></i>
               Get Last 10 DC Roots
             </>
           )}
