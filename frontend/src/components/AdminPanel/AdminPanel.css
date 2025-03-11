@@ -34,13 +34,55 @@
     font-size: 14px;
   }
 
+  .dc-roots-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dc-roots-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .dc-roots-toggle:hover {
+    background-color: #e0e0e0;
+  }
+
+  .dc-roots-toggle i {
+    color: #64748b;
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+  }
+
   .last10DCContainer {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-top: 1rem;
     max-height: 300px;
+    opacity: 1;
     overflow-y: auto;
+    transition: all 0.3s ease;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    background: white;
+    border-radius: 4px;
+  }
+
+  .last10DCContainer.hidden {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
   }
 
   .last10DCContainer span {
@@ -56,8 +98,7 @@
   .last10DCContainer span:hover {
     background: #f5f5f5;
     border-color: #2196f3;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateX(4px);
   }
 
   /* Dark mode support */
@@ -65,6 +106,22 @@
     .getLast10DCRoots {
       background-color: #1a237e;
       border-color: #3949ab;
+    }
+
+    .dc-roots-toggle {
+      background-color: #1a237e;
+    }
+
+    .dc-roots-toggle:hover {
+      background-color: #283593;
+    }
+
+    .dc-roots-toggle i {
+      color: #9ca3af;
+    }
+
+    .last10DCContainer {
+      background: #1a237e;
     }
 
     .last10DCContainer span {

@@ -16,6 +16,7 @@ function AdminPanel() {
   const [isLoading, setIsLoading] = useState(false); // Track loading state
   const [fullDC, setFullDC] = useState({ root: "", records: [] });
   const [last10DCRoots, setLast10DCRoots] = useState([]);
+  const [isLast10DCVisible, setIsLast10DCVisible] = useState(false);
 
   const generateRGCD = async (serialNumber_) => {
     const rGCD = await getFromBE("dc/generateRGCD", {
@@ -49,6 +50,7 @@ function AdminPanel() {
     if (!globData) return;
     setIsLoading(true);
     setError(null); // Reset error state
+    setIsLast10DCVisible(true); // Make container visible when button is clicked
 
     try {
       let last10DCRoots_ = await globData.royalGrowcontractInstance.methods
@@ -144,25 +146,36 @@ function AdminPanel() {
   return (
     <div className="adminPanelContainer">
       <div className="getLast10DCRoots">
-        <button 
-          onClick={getLast10DCRoots} 
-          disabled={isLoading}
-          className="update-button history-button dc-history-btn"
-          title="Get the last 10 Detailed Credit roots"
-        >
-          {isLoading ? (
-            <>
-              <span className="loading-spinner"></span>
-              Loading...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-history"></i>
-              Get Last 10 DC Roots
-            </>
+        <div className="dc-roots-header">
+          <button 
+            onClick={getLast10DCRoots} 
+            disabled={isLoading}
+            className="update-button history-button dc-history-btn"
+            title="Get the last 10 Detailed Credit roots"
+          >
+            {isLoading ? (
+              <>
+                <span className="loading-spinner"></span>
+                Loading...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-history"></i>
+                Get Last 10 DC Roots
+              </>
+            )}
+          </button>
+          {last10DCRoots.length > 0 && (
+            <div 
+              className="dc-roots-toggle" 
+              onClick={() => setIsLast10DCVisible(!isLast10DCVisible)}
+              title={isLast10DCVisible ? "Hide DC Roots" : "Show DC Roots"}
+            >
+              <i className={`fas ${isLast10DCVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+            </div>
           )}
-        </button>
-        <div className="last10DCContainer">
+        </div>
+        <div className={`last10DCContainer ${isLast10DCVisible ? 'visible' : 'hidden'}`}>
           {last10DCRoots.map((elm) => (
             <span
               key={elm.serialNumber}
