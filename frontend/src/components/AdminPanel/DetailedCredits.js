@@ -2,7 +2,7 @@ import React from "react";
 
 const DetailedCredits = ({ fullDC }) => {
   return (
-    <div className="detailed-credits">
+    <div className="detailedCrdReport">
       <h2>Full Records ({fullDC.root})</h2>
       <ul className="record-list">
         <li key="0i0i" className="record-item">

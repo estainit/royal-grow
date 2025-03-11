@@ -114,7 +114,7 @@ function App() {
           <TransactionInfo />
         </div>
 
-        <div className="dashboard-section winner-section">
+        <div className="dashboard-section winner-section" style={{ display: 'none' }}>
           <ChooseWinner />
         </div>
       </main>

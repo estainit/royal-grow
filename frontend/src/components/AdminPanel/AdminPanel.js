@@ -25,12 +25,17 @@ function AdminPanel() {
   };
 
   const makeFullRGCD = async () => {
+    console.log("makeFullRGCD called with serialNumber:", serialNumber);
     const rGCD = await getFromBE("dc/makeFullRGCD", { serialNumber });
-    console.log("makeFullRGCD info", rGCD);
-    if (rGCD) setFullDC(rGCD.data);
+    console.log("makeFullRGCD response:", rGCD);
+    if (rGCD) {
+      console.log("Setting fullDC with data:", rGCD.data);
+      setFullDC(rGCD.data);
+    }
   };
 
   const getDCDetail = async (theSerialNumber) => {
+    console.log("getDCDetail called with serialNumber:", theSerialNumber);
     setSerialNumber(theSerialNumber);
     await makeFullRGCD();
   };
@@ -38,59 +43,26 @@ function AdminPanel() {
   const getLast10DCRoots = async () => {
     if (!globData) return;
     setIsLoading(true);
+    setError(null); // Reset error state
 
     try {
-      //const beDoKeccak256 = await getFromBE("doKeccak256", {
-      //  str: "hello",
-      //});
-      //console.log("be Do Keccak 256:", beDoKeccak256.data);
-
-      //console.log("doKeccak256 in FE: ", doKeccak256(globData, "hello"));
-      //let doKeccak256Res = await globData.royalGrowcontractInstance.methods
-      //  .doKeccak256("hello")
-      //  .call();
-      //console.log("doKeccak256Res SC: ", doKeccak256Res);
-
-      let validateProofRes = await globData.royalGrowcontractInstance.methods
-        .validateProof(
-          "ccd558be",
-          "2:5000:7e74ed4b",
-          ["r.9ee8a7f1", "r.407af542", "r.4a742197", "r.310aa3fc"],
-          1
-        )
-        .call();
-      console.log("10 validate Proof Res: ", validateProofRes);
-
-      let calcRootByAProve = await globData.royalGrowcontractInstance.methods
-        .calcRootByAProve(
-          "2:5000:7e74ed4b",
-          ["r.9ee8a7f1", "r.407af542", "r.4a742197", "r.310aa3fc"],
-          1
-        )
-        .call();
-      console.log("calcRootByAProve: ", calcRootByAProve);
-
-      //0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
       let last10DCRoots_ = await globData.royalGrowcontractInstance.methods
         .getLast10DCRoots()
         .call();
       let localElems = [];
-      const decoder = new TextDecoder();
       console.log("last10DCRoots_", last10DCRoots_);
+      
       for (const inx of Object.keys(last10DCRoots_).sort()) {
-        if (last10DCRoots_[inx].serialNumber.toString() != "0")
+        if (last10DCRoots_[inx].serialNumber.toString() !== "0") {
           localElems.push({
             serialNumber: last10DCRoots_[inx].serialNumber.toString(),
             rootHash: bytesToString(last10DCRoots_[inx].rootHash),
           });
+        }
       }
+      
+      console.log("Processed DC roots:", localElems);
       setLast10DCRoots(localElems);
-
-      let getCreditsMerkleRoot =
-        await globData.royalGrowcontractInstance.methods
-          .getCreditsMerkleRoot()
-          .call();
-      console.log("getNewestCreditsMerkle Root: ", getCreditsMerkleRoot);
 
       let currentSerialNumber = await globData.royalGrowcontractInstance.methods
         .getDCCurrentSerialNumber()
@@ -100,9 +72,8 @@ function AdminPanel() {
       console.error("Error fetching last 10 DC Roots:", error);
       setError(error.message);
     } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const updateCreditsMerkleRoot = async () => {
@@ -166,12 +137,12 @@ function AdminPanel() {
   };
 
   return (
-    <div>
+    <div className="adminPanelContainer">
       <div className="getLast10DCRoots">
         <button onClick={getLast10DCRoots} disabled={isLoading}>
           {isLoading ? "Loading..." : "get last 10 DC Roots"}
         </button>
-        <div>
+        <div className="last10DCContainer">
           {last10DCRoots.map((elm) => (
             <span
               key={elm.serialNumber}
@@ -199,7 +170,16 @@ function AdminPanel() {
           placeholder="serialNumber"
         />
       </div>
-      <DetailedCredits fullDC={fullDC} />
+
+      <div className="detailed-credits-container">
+        {console.log("AdminPanel rendering with fullDC:", {
+          fullDC,
+          hasRecords: fullDC?.records?.length > 0,
+          recordsLength: fullDC?.records?.length,
+          records: fullDC?.records
+        })}
+        <DetailedCredits fullDC={fullDC} />
+      </div>
     </div>
   );
 }
