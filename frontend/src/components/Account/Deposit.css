@@ -1,19 +1,55 @@
 .depos-money {
   background: #ffffff;
   border-radius: 12px;
-  padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   margin: 2rem auto;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
-.depos-money h2 {
+.depos-money-header {
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9fa;
+  transition: background-color 0.3s ease;
+}
+
+.depos-money-header:hover {
+  background: #f0f0f0;
+}
+
+.depos-money-header h2 {
   color: #1a237e;
   font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  margin: 0;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.depos-money-header i {
+  color: #1a237e;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.depos-money-content {
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  max-height: 500px;
+  opacity: 1;
+}
+
+.depos-money-content.hidden {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .depos-money input {
@@ -119,7 +155,19 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   }
 
-  .depos-money h2 {
+  .depos-money-header {
+    background: #283593;
+  }
+
+  .depos-money-header:hover {
+    background: #3949ab;
+  }
+
+  .depos-money-header h2 {
+    color: #ffffff;
+  }
+
+  .depos-money-header i {
     color: #ffffff;
   }
 
@@ -158,11 +206,18 @@
 @media (max-width: 768px) {
   .depos-money {
     margin: 1rem;
-    padding: 1.5rem;
   }
 
-  .depos-money h2 {
+  .depos-money-header {
+    padding: 1rem;
+  }
+
+  .depos-money-header h2 {
     font-size: 1.5rem;
+  }
+
+  .depos-money-content {
+    padding: 1rem;
   }
 
   .depos-money input,
