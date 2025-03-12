@@ -89,7 +89,7 @@ const SendMoney = () => {
         onChange={handleChange}
         placeholder="Enter amount in ETH"
       />
-      <button onClick={sendMoney} disabled={isLoading}>
+      <button onClick={sendMoney} disabled={isLoading} >
         Send Money
       </button>
       <button onClick={payToContract} disabled={isLoading}>

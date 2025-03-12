@@ -8,6 +8,8 @@ import "./AdminPanel.css";
 import DetailedCredits from "./DetailedCredits";
 import "./DetailedCredits.css";
 
+import Deposit from "../Account/Deposit";
+
 function AdminPanel() {
   const { globData } = useContext(AppContext);
 
@@ -243,7 +245,7 @@ function AdminPanel() {
           placeholder="serialNumber"
         />
       </div>
-      
+      <Deposit />
     </div>
   );
 }

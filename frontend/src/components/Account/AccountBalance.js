@@ -12,7 +12,7 @@ import {
 } from "../CUtils";
 import "./AccountBalance.css";
 
-import SendMoney from "./Deposit";
+import Deposit from "./Deposit";
 import Withdraw from "./Withdraw";
 import TransferFund from "./TransferFund";
 
@@ -441,7 +441,7 @@ const AccountBalance = () => {
           </Row>
         </div>
         <div>
-        <SendMoney />
+        <Deposit />
         </div>
       </div>
     </div>
