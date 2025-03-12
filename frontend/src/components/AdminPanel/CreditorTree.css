@@ -1,0 +1,100 @@
+.creditor-tree {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 1rem 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.creditor-tree-header {
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.creditor-tree-header:hover {
+  background: #f1f3f5;
+}
+
+.creditor-tree-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.creditor-tree-header i {
+  color: #6c757d;
+  transition: transform 0.3s ease;
+}
+
+.creditor-tree-content {
+  padding: 1rem;
+  transition: all 0.3s ease;
+  max-height: 1000px;
+  overflow: hidden;
+}
+
+.creditor-tree-content.hidden {
+  max-height: 0;
+  padding: 0;
+}
+
+.tree-visualization {
+  font-family: monospace;
+  white-space: pre;
+  margin: 0;
+  color: #495057;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Dark mode styles */
+.dark-mode .creditor-tree {
+  background: #2d3436;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .creditor-tree-header {
+  background: #353b48;
+  border-bottom-color: #2d3436;
+}
+
+.dark-mode .creditor-tree-header:hover {
+  background: #2f3640;
+}
+
+.dark-mode .creditor-tree-header h2 {
+  color: #dfe6e9;
+}
+
+.dark-mode .creditor-tree-header i {
+  color: #b2bec3;
+}
+
+.dark-mode .tree-visualization {
+  color: #dfe6e9;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .creditor-tree-header {
+    padding: 0.8rem;
+  }
+  
+  .creditor-tree-header h2 {
+    font-size: 1rem;
+  }
+  
+  .tree-visualization {
+    font-size: 0.8rem;
+  }
+} 

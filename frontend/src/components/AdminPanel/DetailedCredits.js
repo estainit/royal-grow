@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import CreditorTree from './CreditorTree';
+import './DetailedCredits.css';
 
 const DetailedCredits = ({ fullDC }) => {
   const [isListVisible, setIsListVisible] = useState(true);
@@ -53,6 +55,7 @@ const DetailedCredits = ({ fullDC }) => {
           </li>
         ))}
       </ul>
+      <CreditorTree records={fullDC.records} />
     </div>
   );
 };
