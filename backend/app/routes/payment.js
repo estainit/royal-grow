@@ -6,7 +6,7 @@ const { ethers } = require("ethers");
 const keccak256 = require("keccak256"); // Assuming you're using keccak256 library
 
 const { doTransferFund } = require("../modules/contract-pay");
-const { getRGCredit, upsertCredit } = require("../entity/rg_balances");
+const { getRGCredit, upsertCredit, getAllCreditors, getSumAllCreditors } = require("../entity/rg_balances");
 
 const {
   payToContract,
@@ -149,6 +149,28 @@ router.get("/transaction/history", async (req, res) => {
       data: null,
       message: "Failed to fetch transaction history",
       success: false,
+    });
+  }
+});
+
+router.get("/getOfflineBalances", async (req, res) => {
+  try {
+    const creditors = await getAllCreditors();
+    const total = await getSumAllCreditors();
+    
+    // Always return a valid response object
+    return res.status(200).json({
+      stat: true,
+      balances: Array.isArray(creditors) ? creditors : [],
+      total: total.toString()
+    });
+  } catch (error) {
+    console.error("Error getting offline balances:", error);
+    return res.status(500).json({
+      stat: false,
+      msg: "Error getting offline balances",
+      balances: [],
+      total: "0"
     });
   }
 });

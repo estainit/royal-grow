@@ -9,6 +9,8 @@ import DetailedCredits from "./DetailedCredits";
 import "./DetailedCredits.css";
 
 import Deposit from "../Account/Deposit";
+import CreditorTree from "./CreditorTree";
+import OfflineBalances from "./OfflineBalances";
 
 function AdminPanel() {
   const { globData } = useContext(AppContext);
@@ -189,7 +191,6 @@ function AdminPanel() {
         </div>
       </div>
 
-
       <div className="detailed-credits-container">
         {console.log("AdminPanel rendering with fullDC:", {
           fullDC,
@@ -200,6 +201,7 @@ function AdminPanel() {
         <DetailedCredits fullDC={fullDC} />
       </div>
 
+      <OfflineBalances />
 
       <div className="button-container">
         <button 

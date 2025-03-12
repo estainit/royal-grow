@@ -7,28 +7,27 @@ async function getAllCreditors() {
       `;
     const values = [];
     const result = await dbPool.query(query, values);
-    if (result.rows.length > 0) return result.rows;
-    return 0;
+    return (result.rows || []).map(row => ({
+      creditor: row.creditor,
+      amount: row.amount ? row.amount.toString() : "0"
+    }));
   } catch (err) {
     console.error("Error get AllCreditors:", err);
-    //throw err; // Re-throw the error for handling in the calling code
-    return 0;
+    return [];
   }
 }
 
 async function getSumAllCreditors() {
   try {
     const query = `
-        SELECT SUM(amount) FROM rg_balances;
+        SELECT COALESCE(SUM(amount), 0) as sum FROM rg_balances;
       `;
     const values = [];
     const result = await dbPool.query(query, values);
-    if (result.rows.length > 0) return result.rows[0].sum;
-    return 0;
+    return (result.rows[0]?.sum || "0").toString();
   } catch (err) {
     console.error("Error get SumAllCreditors:", err);
-    //throw err; // Re-throw the error for handling in the calling code
-    return 0;
+    return "0";
   }
 }
 
@@ -40,23 +39,24 @@ async function getRGCredit(creditor) {
     const values = [creditor];
     const result = await dbPool.query(query, values);
     if (result.rows.length > 0) {
-      const resu = {
+      const amount = result.rows[0].amount;
+      // Handle null, undefined, or invalid amount values
+      const safeAmount = amount && !isNaN(amount) ? amount.toString() : "0";
+      return {
         rowId: result.rows[0].id,
-        currentBalance: parseInt(result.rows[0].amount),
+        currentBalance: safeAmount
       };
-      return resu;
     }
 
     return {
       id: null,
-      currentBalance: 0,
+      currentBalance: "0"
     };
   } catch (err) {
     console.error("Error get RGCredit:", err);
-    //throw err; // Re-throw the error for handling in the calling code
     return {
       id: null,
-      currentBalance: 0,
+      currentBalance: "0"
     };
   }
 }

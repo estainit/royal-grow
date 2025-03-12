@@ -27,6 +27,6 @@ COPY --from=builder . .
 # Expose port for your Node.js application (adjust if needed)
 EXPOSE 3100
 
-# Run development script (replace with your command)
-CMD [ "node", "server.js" ]
+# Run development script with nodemon for hot-reloading
+CMD [ "nodemon", "--watch", ".", "--ext", "js,json", "--ignore", "node_modules/", "server.js" ]
 

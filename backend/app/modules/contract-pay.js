@@ -70,8 +70,13 @@ async function doTransferFund(
     // decrease signer/sender credit
     await updateCredit(signerAddress, currentBalance - amount);
 
-    // increase/create reciever cradit
-    await upsertCredit(recipientAddress, amount); // test address 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65
+    // increase/create reciever credit
+    console.log("+++++++++ xxxxxx address", recipientAddress.toLowerCase());
+    const { __, creditorCurrentBalance } = await getRGCredit(recipientAddress.toLowerCase());
+    const safeCurrentBalance = creditorCurrentBalance ? BigInt(creditorCurrentBalance) : BigInt(0);
+    const safeAmount = amount ? BigInt(amount) : BigInt(0);
+    const newBalance = (safeCurrentBalance + safeAmount).toString();
+    await upsertCredit(recipientAddress, newBalance);
 
     // log transaction
     await insertTxLog(

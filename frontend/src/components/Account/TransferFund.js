@@ -194,7 +194,7 @@ function TransferFund() {
               Processing...
             </>
           ) : (
-            'Send Transfer'
+            'Send Money'
           )}
         </button>
       </div>

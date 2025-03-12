@@ -23,12 +23,17 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile
+      target: dev  # Explicitly use the dev stage
     image: rgi_be
     container_name: rgc_be
     ports:
     - "3100:3100"
     volumes:
       - ./backend:/backend
+      - /backend/node_modules  # Preserve container's node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true  # Enable polling for better file watching in Docker
     depends_on:
       - db
     networks:
@@ -43,7 +48,7 @@ services:
   # Hardhat service
   hardhat:
     build:
-      context: ./hardhat
+      context: hardhat
       dockerfile: Dockerfile
     image: rgi_hh
     container_name: rgc_hh
@@ -59,8 +64,8 @@ services:
   # React application
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
+      context: frontend
+      dockerfile: Dockerfile
     image: rgi_fe
     container_name: rgc_fe
     ports:
