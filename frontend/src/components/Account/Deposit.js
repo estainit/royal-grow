@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../AppContext";
 import { getWalletSelectedAccountByWalletSigner } from "../CUtils";
+import "./Deposit.css";
 
 const SendMoney = () => {
   const { globData } = useContext(AppContext);
@@ -68,9 +69,10 @@ const SendMoney = () => {
       });
 
       console.log("Transaction successful");
+      setAmount("");
     } catch (error) {
       console.error("Error sending money:", error);
-      // Handle error appropriately (e.g., display error message)
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -82,18 +84,37 @@ const SendMoney = () => {
 
   return (
     <div className="depos-money">
-      <h2>Charge your account</h2>
+      <h2>
+        <i className="fas fa-wallet"></i> Charge your account
+      </h2>
       <input
         type="number"
         value={amount}
         onChange={handleChange}
         placeholder="Enter amount in ETH"
+        min="0"
+        step="0.000000000000000001"
       />
-      <button onClick={sendMoney} disabled={isLoading} >
+      {/* <button onClick={sendMoney} disabled={isLoading} >
         Send Money
-      </button>
-      <button onClick={payToContract} disabled={isLoading}>
-        Pay To Contract
+      </button> */}
+      {error && <div className="error-message">{error}</div>}
+      <button 
+        onClick={payToContract} 
+        disabled={isLoading}
+        className={isLoading ? 'loading' : ''}
+      >
+        {isLoading ? (
+          <>
+            <i className="fas fa-spinner"></i>
+            Processing...
+          </>
+        ) : (
+          <>
+            <i className="fas fa-paper-plane"></i>
+            Pay To Contract
+          </>
+        )}
       </button>
     </div>
   );

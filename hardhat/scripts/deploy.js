@@ -7,7 +7,7 @@
 //const hre = require("hardhat");
 
 const fs = require("fs");
-const contractsDir = __dirname + "/../../frontend/src/contracts";
+const contractsDir = __dirname + "/../../frontend/src/deployed-contracts";
 
 async function main() {
   // This is just a convenience check
@@ -32,7 +32,9 @@ async function main() {
       const ACC1_PUBLIC_KEY = "0x5095ad334F6766DDFD07a87a550cC0f96b377A25";
 
      */
-    provider = new ethers.providers.JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/xl9NXzq-J2N1voXCujrq3iRcrnHfCq_X");
+    provider = new ethers.providers.JsonRpcProvider(
+      "https://eth-sepolia.g.alchemy.com/v2/xl9NXzq-J2N1voXCujrq3iRcrnHfCq_X"
+    );
   }
 
   const [deployer] = await ethers.getSigners();

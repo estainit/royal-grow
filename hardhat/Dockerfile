@@ -19,5 +19,10 @@ COPY . .
 # Expose the port Hardhat runs on (default: 8545)
 EXPOSE 8545
 
-# Start Hardhat node
-CMD ["npx", "hardhat", "node"]
+VOLUME ["hardhat"]
+
+# # Start Hardhat node
+# CMD ["npx", "hardhat", "node"]
+
+# Start Hardhat node with hostname 0.0.0.0
+CMD ["npx", "hardhat", "node", "--hostname", "0.0.0.0"]

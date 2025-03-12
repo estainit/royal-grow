@@ -12,7 +12,6 @@ import {
 } from "../CUtils";
 import "./AccountBalance.css";
 
-import Deposit from "./Deposit";
 import Withdraw from "./Withdraw";
 import TransferFund from "./TransferFund";
 
@@ -441,7 +440,6 @@ const AccountBalance = () => {
           </Row>
         </div>
         <div>
-        <Deposit />
         </div>
       </div>
     </div>

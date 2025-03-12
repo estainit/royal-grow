@@ -19,13 +19,32 @@ function App() {
   const { globData } = useContext(AppContext);
 
   const [totalCredited, setTotalCredited] = useState(null);
-  const [selectedAccount, setSelectedAccount] = useState('');
+  const [selectedAccount, setSelectedAccount] = useState("");
 
   const now = getNow();
 
   const getContractBalance = async () => {
     if (!globData) return;
+
+    await window.ethereum.request({ method: "eth_requestAccounts" });
     try {
+      if (!globData || !globData.web3) {
+        console.error("Web3 is not initialized!");
+      } else {
+        console.log("Web3 is ready.");
+      }
+
+      if (!globData.web3.utils.isAddress(globData.royalGrowContractAddress)) {
+        console.error("Invalid contract address!");
+      } else {
+        console.log("Valid contract address.");
+      }
+
+      globData.web3.eth.net
+        .isListening()
+        .then(() => console.log("Connected to a Blockchain"))
+        .catch((err) => console.error("Not connected:", err));
+
       const contractBalance = await globData.web3.eth.getBalance(
         globData.royalGrowContractAddress
       );
@@ -52,32 +71,31 @@ function App() {
     const initSelectedAccount = async () => {
       try {
         if (!globData || !globData.web3) return;
-        
+
         // Get the current accounts
         const accounts = await globData.web3.eth.getAccounts();
-        
+
         // If accounts exist, use the first one
         if (accounts && accounts.length > 0) {
           setSelectedAccount(accounts[0]);
         }
 
         // Listen for account changes
-        globData.web3.eth.on('accountsChanged', (newAccounts) => {
+        globData.web3.eth.on("accountsChanged", (newAccounts) => {
           if (newAccounts && newAccounts.length > 0) {
             setSelectedAccount(newAccounts[0]);
           } else {
-            setSelectedAccount('');
+            setSelectedAccount("");
           }
         });
 
         // Listen for chain changes
-        globData.web3.eth.on('chainChanged', () => {
+        globData.web3.eth.on("chainChanged", () => {
           window.location.reload();
         });
-
       } catch (error) {
-        console.error('Error getting selected account:', error);
-        setSelectedAccount('');
+        console.error("Error getting selected account:", error);
+        setSelectedAccount("");
       }
     };
 
@@ -86,8 +104,8 @@ function App() {
     // Cleanup function to remove event listeners
     return () => {
       if (globData && globData.web3) {
-        globData.web3.eth.removeAllListeners('accountsChanged');
-        globData.web3.eth.removeAllListeners('chainChanged');
+        globData.web3.eth.removeAllListeners("accountsChanged");
+        globData.web3.eth.removeAllListeners("chainChanged");
       }
     };
   }, [globData]);
@@ -97,8 +115,10 @@ function App() {
       <header className="App-header">
         <p onClick={() => getContractBalance()} className="topLogoAndAccount">
           <span className="logo-text">Royal GrowTh!</span>
-          <span className="account-info">({selectedAccount.slice(0, 6)}...{selectedAccount.slice(-4)})</span>
-          {totalCredited && parseFloat(totalCredited) > 0 && (
+          <span className="account-info">
+            ({selectedAccount.slice(0, 6)}...{selectedAccount.slice(-4)})
+          </span>
+          {totalCredited && parseFloat(totalCredited) >= 0 && (
             <span className="eth-amount">{totalCredited} ETH</span>
           )}
           <span className="timestamp">{now}</span>
@@ -114,7 +134,10 @@ function App() {
           <TransactionInfo />
         </div>
 
-        <div className="dashboard-section winner-section" style={{ display: 'none' }}>
+        <div
+          className="dashboard-section winner-section"
+          style={{ display: "none" }}
+        >
           <ChooseWinner />
         </div>
       </main>
@@ -128,7 +151,6 @@ function App() {
         </Col>
       </Row>
 
-      
       <AdminPanel />
     </div>
   );

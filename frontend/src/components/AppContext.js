@@ -1,8 +1,8 @@
 import React, { createContext, useState, useEffect } from "react";
 import Web3 from "web3";
 
-import contractsAddress from "../contracts/contract-address.json";
-import RoyalGrow from "../contracts/RoyalGrow.json";
+import contractsAddress from "../deployed-contracts/contract-address.json";
+import RoyalGrow from "../deployed-contracts/RoyalGrow.json";
 
 // Create a context
 export const AppContext = createContext();
@@ -18,7 +18,7 @@ export const AppProvider = ({ children }) => {
         const web3Instance = new Web3(window.ethereum);
         try {
           await window.ethereum.request({ method: "eth_requestAccounts" });
-          
+
           const royalGrowContractAddress = contractsAddress.RoyalGrow;
           const royalGrowcontract = new web3Instance.eth.Contract(
             RoyalGrow.abi,
@@ -26,6 +26,50 @@ export const AppProvider = ({ children }) => {
           );
 
           try {
+            const getContractBalance = async () => {
+              try {
+                // First check if we're connected to the right network
+                const networkId = await web3Instance.eth.net.getId();
+                console.log("Connected to network:", networkId);
+
+                // Check if contract is deployed at the address
+                const code = await web3Instance.eth.getCode(
+                  royalGrowContractAddress
+                );
+                if (code === "0x" || code === "") {
+                  console.error(
+                    "No contract deployed at address:",
+                    royalGrowContractAddress
+                  );
+                  return "0.0";
+                }
+
+                // Try to get the balance
+                const balance = await royalGrowcontract.methods
+                  .balance()
+                  .call();
+                console.log("Raw balance:", balance);
+
+                // If balance is null, undefined, or empty string, return 0.0
+                if (!balance || balance === "0" || balance === "") {
+                  return "0.0";
+                }
+
+                // Convert balance from Wei to Ether
+                return web3Instance.utils.fromWei(balance, "ether");
+              } catch (error) {
+                console.error("Error getting contract balance:", error);
+                // Log more details about the error
+                if (error.data) {
+                  console.error("Error data:", error.data);
+                }
+                if (error.message) {
+                  console.error("Error message:", error.message);
+                }
+                return "0.0";
+              }
+            };
+
             setGlobData({
               web3: web3Instance,
               RoyalGrow: RoyalGrow,
