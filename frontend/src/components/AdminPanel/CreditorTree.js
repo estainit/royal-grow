@@ -68,7 +68,7 @@ const CreditorTree = ({ records }) => {
     <div className="creditor-tree">
       <div className="creditor-tree-header" onClick={() => setIsVisible(!isVisible)}>
         <h2>
-          <i className="fas fa-sitemap"></i> Creditor Tree
+          <i className="fas fa-sitemap"></i> Onchain Creditor Tree
         </h2>
         <i className={`fas ${isVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
       </div>

@@ -8,14 +8,18 @@ const SCListeners = () => {
   const { globData } = useContext(AppContext);
 
   const [isVisible, setIsVisible] = useState(false);
-  const [logContent, setLogContent] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info");
 
-  const dspEvent = async (msg, msgType) => {
-    if (msgType === "err") {
-    }
-    setTimeout(() => setIsVisible(true), 200);
-    setLogContent(logContent + " " + msg);
-    setTimeout(() => setIsVisible(false), 15000);
+  const dspEvent = async (msg, msgType = "info") => {
+    setMessageType(msgType);
+    setMessage(msg);
+    setIsVisible(true);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      setIsVisible(false);
+    }, 5000);
   };
 
   useEffect(() => {
@@ -179,9 +183,15 @@ const SCListeners = () => {
  */
 
   return (
-    <div id="scListContainer" style={{ display: isVisible ? "block" : "none" }}>
-      {logContent}
-    </div>
+    <>
+      {isVisible && (
+        <div id="scListContainer">
+          <div className={`message-modal ${messageType}`}>
+            <p className="message-content">{message}</p>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
