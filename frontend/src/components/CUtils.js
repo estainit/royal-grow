@@ -154,3 +154,23 @@ export const parseClearRecord = (aRecord) => {
     salt: recordSegments[3],
   };
 };
+
+// Create a global event emitter for displaying messages
+const messageEventEmitter = new EventTarget();
+
+export const dspEvent = (msg, msgType = "info") => {
+  const event = new CustomEvent('displayMessage', {
+    detail: { message: msg, type: msgType }
+  });
+  messageEventEmitter.dispatchEvent(event);
+};
+
+export const subscribeToMessageEvents = (callback) => {
+  messageEventEmitter.addEventListener('displayMessage', (event) => {
+    callback(event.detail.message, event.detail.type);
+  });
+};
+
+export const unsubscribeFromMessageEvents = (callback) => {
+  messageEventEmitter.removeEventListener('displayMessage', callback);
+};

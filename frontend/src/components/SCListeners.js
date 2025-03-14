@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "./AppContext";
-import { postToBE } from "./CUtils";
+import { postToBE, subscribeToMessageEvents, unsubscribeFromMessageEvents } from "./CUtils";
 
 import "./SCListeners.css";
 
@@ -21,6 +21,27 @@ const SCListeners = () => {
       setIsVisible(false);
     }, 5000);
   };
+
+  useEffect(() => {
+    const handleMessage = (msg, msgType) => {
+      setMessageType(msgType);
+      setMessage(msg);
+      setIsVisible(true);
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 4000);
+    };
+
+    // Subscribe to message events
+    subscribeToMessageEvents(handleMessage);
+
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribeFromMessageEvents(handleMessage);
+    };
+  }, []);
 
   useEffect(() => {
     const handlePayToContractEvent = (event) => {
@@ -54,7 +75,6 @@ const SCListeners = () => {
         amount: String(event.returnValues.amount),
         withdrawMsg: String(event.returnValues.withdrawMsg),
         signature: String(event.returnValues.signature),
-        amount: String(event.returnValues.amount),
         timestamp: String(event.returnValues.timestamp),
       });
     };
