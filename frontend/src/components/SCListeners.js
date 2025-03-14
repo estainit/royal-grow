@@ -12,6 +12,8 @@ const SCListeners = () => {
   const [messageType, setMessageType] = useState("info");
 
   const dspEvent = async (msg, msgType = "info") => {
+    if(msg==="" || msg===null || msg===undefined) return;
+
     setMessageType(msgType);
     setMessage(msg);
     setIsVisible(true);
