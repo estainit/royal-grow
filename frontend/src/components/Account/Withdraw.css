@@ -715,3 +715,70 @@
     padding: 0.75rem;
   }
 }
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.reset-button {
+  background-color: #ff0000 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  margin-top: 1rem !important;
+  box-shadow: none !important;
+}
+
+.reset-button::before {
+  content: "⚠️";
+  margin-right: 8px;
+  font-size: 1rem;
+}
+
+.reset-button:hover {
+  background-color: #cc0000 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(255, 0, 0, 0.3);
+}
+
+.reset-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(255, 0, 0, 0.2);
+}
+
+.reset-button:disabled {
+  background-color: #ff000080 !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .reset-button {
+    background-color: #ff0000 !important;
+  }
+
+  .reset-button:hover {
+    background-color: #cc0000 !important;
+  }
+
+  .reset-button:disabled {
+    background-color: #ff000080 !important;
+  }
+}

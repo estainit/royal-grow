@@ -30,6 +30,7 @@ const Withdraw = () => {
   const [isShowingClearData, setIsShowingClearData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   const [errors, setErrors] = useState({
     message: "",
@@ -415,6 +416,29 @@ const Withdraw = () => {
     init();
   }, [globData]);
 
+  const resetDatabase = async () => {
+    if (!window.confirm('Are you sure you want to reset all database tables? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsResetting(true);
+    setError(null);
+    try {
+      const response = await getFromBE("dc/resetDatabase", {});
+      if (response.success) {
+        dspEvent("Database reset successful!", "success");
+      } else {
+        throw new Error(response.message || "Failed to reset database");
+      }
+    } catch (error) {
+      console.error("Database reset error:", error);
+      dspEvent(`Database reset failed: ${error.message}`, "error");
+      setError(error.message);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="withdraw-container">
       <div className="withdrow-fund">
@@ -469,20 +493,37 @@ const Withdraw = () => {
             </label>
           </div>
 
-          <button 
-            className={`withdraw-button ${isLoading ? 'loading' : ''}`}
-            onClick={handleWithdraw}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span className="spinner"></span>
-                Processing...
-              </>
-            ) : (
-              'Withdraw Funds'
-            )}
-          </button>
+          <div className="button-group">
+            <button
+              className={`withdraw-button ${isLoading ? 'loading' : ''}`}
+              onClick={handleWithdraw}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span className="spinner"></span>
+                  Processing...
+                </>
+              ) : (
+                'Withdraw Funds'
+              )}
+            </button>
+
+            <button
+              className="reset-button"
+              onClick={resetDatabase}
+              disabled={isResetting}
+            >
+              {isResetting ? (
+                <>
+                  <span className="spinner"></span>
+                  Resetting...
+                </>
+              ) : (
+                'Reset Database'
+              )}
+            </button>
+          </div>
         </div>
       </div>
       
