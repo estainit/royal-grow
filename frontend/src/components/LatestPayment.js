@@ -13,7 +13,7 @@ const LatestPayment = () => {
       // Implement logic to unsubscribe from the event (if subscription is stored)
     };
     return unsubscribe;
-  }, []); // Re-subscribe on web3/address change
+  }, []); // Re-subscribe on Ether/address change
 
   return (
     <div

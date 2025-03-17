@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import Web3 from "web3";
+import { ethers } from "ethers";
 
 import contractsAddress from "../deployed-contracts/contract-address.json";
 import RoyalGrow from "../deployed-contracts/RoyalGrow.json";
@@ -13,29 +13,40 @@ export const AppProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const initWeb3 = async () => {
+    const initEthers = async () => {
       if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
+        // const web 3Instance = new Web 3(window.ethereum);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner(); 
+
         try {
           await window.ethereum.request({ method: "eth_requestAccounts" });
 
           const royalGrowContractAddress = contractsAddress.RoyalGrow;
-          const royalGrowcontract = new web3Instance.eth.Contract(
+          // const royalGrowcontract = new web 3Instance.eth.Contract(
+          //   RoyalGrow.abi,
+          //   royalGrowContractAddress
+          // );
+          const royalGrowcontract = new ethers.Contract(
+            royalGrowContractAddress,
             RoyalGrow.abi,
-            royalGrowContractAddress
+            signer
           );
 
           try {
             const getContractBalance = async () => {
               try {
                 // First check if we're connected to the right network
-                const networkId = await web3Instance.eth.net.getId();
-                console.log("Connected to network:", networkId);
+                // const networkId = await web 3Instance.eth.net.getId();
+                const network = await provider.getNetwork();
+                const networkId = network.chainId;
+                console.log("Connected to network:", network);
 
                 // Check if contract is deployed at the address
-                const code = await web3Instance.eth.getCode(
-                  royalGrowContractAddress
-                );
+                const code = await provider.getCode(royalGrowContractAddress);
+                // const code = await web 3Instance.eth.getCode(
+                //   royalGrowContractAddress
+                // );
                 if (code === "0x" || code === "") {
                   console.error(
                     "No contract deployed at address:",
@@ -56,7 +67,8 @@ export const AppProvider = ({ children }) => {
                 }
 
                 // Convert balance from Wei to Ether
-                return web3Instance.utils.fromWei(balance, "ether");
+                // return web 3Instance.utils.fromWei(balance, "ether");
+                return ethers.formatEther(balance);
               } catch (error) {
                 console.error("Error getting contract balance:", error);
                 // Log more details about the error
@@ -71,7 +83,7 @@ export const AppProvider = ({ children }) => {
             };
 
             setGlobData({
-              web3: web3Instance,
+              provider: provider,
               RoyalGrow: RoyalGrow,
               royalGrowContractAddress: royalGrowContractAddress,
               royalGrowcontractInstance: royalGrowcontract,
@@ -80,16 +92,18 @@ export const AppProvider = ({ children }) => {
             console.error("Error fetching contract data:", error);
           }
         } catch (error) {
-          console.error("Error while initializing web3", error);
+          console.error("Error while initializing Ether", error);
           setError(error.message); // Set error state
         }
       } else {
-        console.error("Web3 not found");
-        setError("Web3 not found. Please install a wallet extension."); // Informative error message
+        console.error("No Ethereum provider found");
+        setError(
+          "No Ethereum provider found. Please install a wallet extension."
+        );
       }
     };
 
-    initWeb3();
+    initEthers();
   }, []);
 
   return (

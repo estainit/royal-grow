@@ -1,8 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Row, Col } from "react-bootstrap";
+import { ethers } from "ethers";
 
 import { AppContext } from "./AppContext";
 import "./App.css";
+import { checkConnection } from "./CUtils";
 import AccountBalance from "./Account/AccountBalance";
 import AdminPanel from "./AdminPanel/AdminPanel";
 import ContractBalance from "./ContractBalance";
@@ -28,30 +30,31 @@ function App() {
 
     await window.ethereum.request({ method: "eth_requestAccounts" });
     try {
-      if (!globData || !globData.web3) {
-        console.error("Web3 is not initialized!");
+      if (!globData || !globData.provider) {
+        console.error("Ether is not initialized!");
       } else {
-        console.log("Web3 is ready.");
+        console.log("Ether is ready.");
       }
 
-      if (!globData.web3.utils.isAddress(globData.royalGrowContractAddress)) {
+      if (!ethers.isAddress(globData.royalGrowContractAddress)) {
         console.error("Invalid contract address!");
       } else {
         console.log("Valid contract address.");
       }
 
-      globData.web3.eth.net
-        .isListening()
-        .then(() => console.log("Connected to a Blockchain"))
-        .catch((err) => console.error("Not connected:", err));
+      await checkConnection(globData.provider);
+      // globData.web 3.eth.net
+      //   .isListening()
+      //   .then(() => console.log("Connected to a Blockchain"))
+      //   .catch((err) => console.error("Not connected:", err));
 
-      const contractBalance = await globData.web3.eth.getBalance(
+      const contractBalance = await globData.provider.getBalance(
         globData.royalGrowContractAddress
       );
-      const balanceInEther = globData.web3.utils.fromWei(
-        contractBalance.toString(),
-        "ether"
-      );
+      // const contractBalance = await globData.web 3.eth.getBalance(
+      //   globData.royalGrowContractAddress
+      // );
+      const balanceInEther = ethers.formatEther(contractBalance);
       setTotalCredited(balanceInEther);
     } catch (error) {
       console.error("Error fetching contract balance:", error);
@@ -70,10 +73,10 @@ function App() {
   useEffect(() => {
     const initSelectedAccount = async () => {
       try {
-        if (!globData || !globData.web3) return;
+        if (!globData || !globData.provider) return;
 
         // Get the current accounts
-        const accounts = await globData.web3.eth.getAccounts();
+        const accounts = await globData.provider.listAccounts();
 
         // If accounts exist, use the first one
         if (accounts && accounts.length > 0) {
@@ -81,7 +84,7 @@ function App() {
         }
 
         // Listen for account changes
-        globData.web3.eth.on("accountsChanged", (newAccounts) => {
+        globData.provider.on("accountsChanged", (newAccounts) => {
           if (newAccounts && newAccounts.length > 0) {
             setSelectedAccount(newAccounts[0]);
           } else {
@@ -90,7 +93,7 @@ function App() {
         });
 
         // Listen for chain changes
-        globData.web3.eth.on("chainChanged", () => {
+        globData.provider.on("chainChanged", () => {
           window.location.reload();
         });
       } catch (error) {
@@ -103,9 +106,9 @@ function App() {
 
     // Cleanup function to remove event listeners
     return () => {
-      if (globData && globData.web3) {
-        globData.web3.eth.removeAllListeners("accountsChanged");
-        globData.web3.eth.removeAllListeners("chainChanged");
+      if (globData && globData.provider) {
+        globData.provider.removeAllListeners("accountsChanged", {});
+        globData.provider.removeAllListeners("chainChanged", {});
       }
     };
   }, [globData]);

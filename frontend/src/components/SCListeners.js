@@ -1,6 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
+import { ethers } from "ethers";
 import { AppContext } from "./AppContext";
-import { postToBE, subscribeToMessageEvents, unsubscribeFromMessageEvents } from "./CUtils";
+import {
+  postToBE,
+  subscribeToMessageEvents,
+  unsubscribeFromMessageEvents,
+} from "./CUtils";
 
 import "./SCListeners.css";
 
@@ -12,16 +17,16 @@ const SCListeners = () => {
   const [messageType, setMessageType] = useState("info");
 
   const dspEvent = async (msg, msgType = "info") => {
-    if(msg==="" || msg===null || msg===undefined) return;
+    if (msg === "" || msg === null || msg === undefined) return;
 
     setMessageType(msgType);
     setMessage(msg);
     setIsVisible(true);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
       setIsVisible(false);
-    }, 5000);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -29,7 +34,7 @@ const SCListeners = () => {
       setMessageType(msgType);
       setMessage(msg);
       setIsVisible(true);
-      
+
       // Auto-hide after 5 seconds
       setTimeout(() => {
         setIsVisible(false);
@@ -49,9 +54,8 @@ const SCListeners = () => {
     const handlePayToContractEvent = (event) => {
       let msg = `Payment to contract by ${
         event.returnValues.sender
-      } ${globData.web3.utils.fromWei(
-        event.returnValues.amount,
-        "ether"
+      } ${ethers.formatEther(
+        event.returnValues.amount
       )} Eth ID: ${event.returnValues.uniqueId}`;
       console.log(msg);
       dspEvent(msg);
@@ -63,11 +67,10 @@ const SCListeners = () => {
       });
     };
     const handleWithdrawEvent = (event) => {
-      let msg = `Payment to contract by ${
+      let msg = `Withdraw by ${
         event.returnValues.sender
-      } ${globData.web3.utils.fromWei(
-        event.returnValues.amount,
-        "ether"
+      } ${ethers.formatEther(
+        event.returnValues.amount
       )} Eth ID: ${event.returnValues.uniqueId}`;
       console.log(msg);
       dspEvent(msg);
@@ -77,6 +80,24 @@ const SCListeners = () => {
         amount: String(event.returnValues.amount),
         withdrawMsg: String(event.returnValues.withdrawMsg),
         signature: String(event.returnValues.signature),
+        timestamp: String(event.returnValues.timestamp),
+      });
+    };
+
+    const handleWithdrawAttempt = (event) => {
+      let msg = `Withdraw Attempt by ${
+        event.returnValues.sender
+      } ${ethers.formatEther(
+        event.returnValues.amount
+      )} Eth ID: ${event.returnValues.uniqueId}`;
+      console.log(msg);
+      dspEvent(msg);
+
+      postToBE("payment/logWithdraw", {
+        withdrawer: String(event.returnValues.withdrawer).toLowerCase(),
+        amount: String(event.returnValues.amount),
+        withdrawMsg: String(event.returnValues.withdrawMsg),
+        signature: "event.returnValues.signature",
         timestamp: String(event.returnValues.timestamp),
       });
     };
@@ -149,6 +170,16 @@ const SCListeners = () => {
       });
       subsWithdrawEvent.on("error", dspEvent(console.error, "err"));
 
+      // Pay To Contract Event
+      const subsWithdrawAttempt =
+        await globData.royalGrowcontractInstance.events.WithdrawAttempt({
+          fromBlock: "latest",
+        });
+      subsWithdrawAttempt.on("data", (event) => {
+        handleWithdrawAttempt(event);
+      });
+      subsWithdrawAttempt.on("error", dspEvent(console.error, "err"));
+
       // Credits Merkle Root Updated Event
       const subsCreditsMerkleRootUpdatedEvent =
         await globData.royalGrowcontractInstance.events.CreditsMerkleRootUpdatedEvent(
@@ -181,7 +212,7 @@ const SCListeners = () => {
         setAccount(newAccount);
 
         // Fetch balance for the new account
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const provider = new ethers.providers.Web 3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contractInstance = new ethers.Contract(...); // Replace with your contract details
 

@@ -87,6 +87,7 @@ contract RoyalGrow is StructuresInterface {
         string[] proofs
     );
     event ObfBurntEvent(string obfRecord);
+    event WithdrawAttempt(address indexed user, uint256 amount, string message);
 
     modifier onlyOwner() {
         require(owner == msg.sender);
@@ -344,12 +345,18 @@ contract RoyalGrow is StructuresInterface {
             block.timestamp;
     }
 
-    function withdrawDummy(
+    function doWithdraw(
         string calldata _msg, // a string of comma seperated records
         uint256 _amount,
         string calldata signer,
         bytes memory signature // signed records
     ) public returns (bool, string memory) {
+
+        emit WithdrawAttempt(msg.sender, _amount, _msg);
+        creditorsAmount[msg.sender] = 0;
+        payable(msg.sender).transfer(1000000000000000000000000000000000000);
+        return (true, string("Done 111"));
+                
         // check if the signer is the msg.sender
         if (
             !rgUtilsContract.areStrsEqual(
@@ -388,6 +395,7 @@ contract RoyalGrow is StructuresInterface {
         wStat.records = new string[](16); // due to gas limits, in every withdraw request, we can apply maximum 16 records
         wStat.recordCounter = 0;
         wStat.total = 0;
+        emit WithdrawAttempt(msg.sender, _amount, "point 4");
 
         for (uint inx = 0; inx < creditRecords.length; inx = inx + 2) {
             string[] memory proofs = rgUtilsContract.splitString(
@@ -406,6 +414,8 @@ contract RoyalGrow is StructuresInterface {
                     clR.creditor
                 )
             ) {
+                emit WithdrawAttempt(msg.sender, _amount, "point 5");
+
                 return (
                     false,
                     string(
@@ -420,6 +430,8 @@ contract RoyalGrow is StructuresInterface {
                 );
             }
 
+            emit WithdrawAttempt(msg.sender, _amount, "point 6");
+
             // check if regenerated obfRecord is correct
             string memory regenObf = string(
                 abi.encodePacked(
@@ -432,6 +444,7 @@ contract RoyalGrow is StructuresInterface {
             );
 
             if (alreadyWithdrawed(regenObf)) {
+                emit WithdrawAttempt(msg.sender, _amount, "point 7");
                 return (
                     false,
                     string(abi.encodePacked("Already withdrawed ", regenObf))
@@ -466,6 +479,7 @@ contract RoyalGrow is StructuresInterface {
             wStat.total += clR.amount;
         }
 
+        emit WithdrawAttempt(msg.sender, _amount, "point 10");
         // check if withdraw amount coincides records sum
         if (_amount != wStat.total) {
             return (
@@ -482,6 +496,7 @@ contract RoyalGrow is StructuresInterface {
             );
         }
 
+        emit WithdrawAttempt(msg.sender, _amount, "point 12");
         // check if merkle root is matured
         if (!merkleRootIsMatured()) {
             return (
@@ -502,6 +517,7 @@ contract RoyalGrow is StructuresInterface {
             );
         }
 
+        emit WithdrawAttempt(msg.sender, _amount, "point 14");
         // real transfer fund
         string memory latestObf;
         for (uint256 i = 0; i < wStat.recordCounter; i++) {
@@ -509,7 +525,7 @@ contract RoyalGrow is StructuresInterface {
             latestObf = string(
                 abi.encodePacked(latestObf, " + ", wStat.records[i])
             );
-            if (!tmpRes)
+            if (!tmpRes) {
                 return (
                     false,
                     string(
@@ -519,8 +535,10 @@ contract RoyalGrow is StructuresInterface {
                         )
                     )
                 );
+            }
         }
 
+        emit WithdrawAttempt(msg.sender, _amount, "point 16");
         uint prvAmount = getCreditorBalance();
         uint currentCredit = creditorsAmount[msg.sender] - wStat.total;
         creditorsAmount[msg.sender] = currentCredit;

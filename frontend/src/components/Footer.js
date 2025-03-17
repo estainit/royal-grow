@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { ethers } from "ethers";
 import { AppContext } from "./AppContext";
 import { getWalletSelectedAccount } from "./CUtils";
 
@@ -19,7 +20,7 @@ function Footer() {
       const balance = await globData.royalGrowcontractInstance.methods
         .getCreditorBalance()
         .call({ from: selectedAccount });
-      const balanceInEther = globData.web3.utils.fromWei(balance.toString(), "ether");
+      const balanceInEther = ethers.formatEther(balance);
       setUserBalance(balanceInEther);
 
     } catch (error) {

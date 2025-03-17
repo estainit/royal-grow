@@ -1,4 +1,6 @@
 import React, { useContext, useState } from "react";
+import { ethers } from "ethers";
+
 import { AppContext } from "../AppContext";
 import { getWalletSelectedAccountByWalletSigner } from "../CUtils";
 import "./Deposit.css";
@@ -18,7 +20,7 @@ const SendMoney = () => {
     setIsLoading(true);
     try {
       const selectedAccount = await getWalletSelectedAccountByWalletSigner(globData);
-      const weiAmount = globData.web3.utils.toWei(amount, "ether");
+      const weiAmount = ethers.parseEther(amount);
 
       console.log("Sending money from selected account:", selectedAccount);
       console.log("Sending money weiAmount:", weiAmount);
@@ -27,15 +29,20 @@ const SendMoney = () => {
         globData.royalGrowContractAddress
       );
 
-      const tx = await globData.web3.eth.sendTransaction({
-        from: selectedAccount.address,
+      const signer = await globData.provider.getSigner();
+      const tx = await signer.sendTransaction({
         to: globData.royalGrowContractAddress,
         value: weiAmount,
       });
+      // const tx = await globData.web 3.eth.sendTransaction({
+      //   from: selectedAccount.address,
+      //   to: globData.royalGrowContractAddress,
+      //   value: weiAmount,
+      // });
       console.log("Transaction successful tx:", tx);
 
       await tx.wait();
-      //const receipt = await web3.eth.waitForTransaction(tx.hash, 1); // Wait for 1 confirmation
+      //const receipt = await web 3.eth.waitForTransaction(tx.hash, 1); // Wait for 1 confirmation
 
       //console.log('Transaction successful 1:', receipt);
       console.log("Transaction successful 2:", tx.transactionHash);
@@ -55,7 +62,7 @@ const SendMoney = () => {
     setIsLoading(true);
     try {
       const selectedAccount = await getWalletSelectedAccountByWalletSigner(globData);
-      const weiAmount = globData.web3.utils.toWei(amount, "ether");
+      const weiAmount = ethers.parseEther(amount);
 
       console.log("Sending money from selected account:", selectedAccount);
       console.log("Sending money weiAmount:", weiAmount);

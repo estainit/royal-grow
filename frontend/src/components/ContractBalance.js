@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { ethers } from "ethers";
 import { AppContext } from "./AppContext";
 
 const ContractBalance = () => {
@@ -8,14 +9,17 @@ const ContractBalance = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Function to fetch contract balance using web3
+  // Function to fetch contract balance using Ether
   const getContractBalance = async () => {
     setIsLoading(true);
     try {
-      const contractBalance = await globData.web3.eth.getBalance(
+      const contractBalance = await globData.provider.getBalance(
         globData.royalGrowContractAddress
       );
-      const balanceInEther = globData.web3.utils.fromWei(contractBalance.toString(), "ether");
+      //      const contractBalance = await globData.web 3.eth.getBalance(
+      //        globData.royalGrowContractAddress
+      //      );
+      const balanceInEther = ethers.formatEther(contractBalance);
       setBalance(balanceInEther);
     } catch (error) {
       console.error("Error fetching contract balance:", error);

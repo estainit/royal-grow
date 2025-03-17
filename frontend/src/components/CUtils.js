@@ -37,7 +37,7 @@ export const weiToEther = (weiAmount) => {
 };
 
 export const getWalletSelectedAccount = async (globData) => {
-  const accounts = await globData.web3.eth.getAccounts();
+  const accounts = await globData.provider.listAccounts();
   return accounts[0]; // Assuming the first account is selected in MetaMask
 };
 
@@ -122,10 +122,10 @@ export function bytesToString(hexString) {
 }
 
 export function doKeccak256(globData, data) {
-  let hash = globData.web3.utils.keccak256(data);
+  let hash = ethers.keccak256(data);
   hash = hash.toString("hex");
   hash = hash.slice(2);
-  hash = globData.web3.utils.keccak256(hash);
+  hash = ethers.keccak256(hash);
   hash = hash.toString("hex");
   return hash.substring(2, 10); //shrtening for the sake of proof length
 }
@@ -174,3 +174,12 @@ export const subscribeToMessageEvents = (callback) => {
 export const unsubscribeFromMessageEvents = (callback) => {
   messageEventEmitter.removeEventListener('displayMessage', callback);
 };
+
+export async function checkConnection(provider) {
+  try {
+    await provider.getBlockNumber(); // Fetch latest block number as a connection test
+    console.log("Connected to a Blockchain");
+  } catch (err) {
+    console.error("Not connected:", err);
+  }
+}
