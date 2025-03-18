@@ -88,15 +88,10 @@ const Withdraw = () => {
         if (!recInfo || !recInfo.amount) {
           throw new Error("Invalid record data");
         }
-        // Convert amount to wei and add to total
-        const amountInWei = ethers.parseEther(recInfo.amount);
-        const currentTotal = ethers.formatEther(totalAmount);
-        const newAmount = ethers.formatEther(amountInWei);
-        const sum = (
-          parseFloat(currentTotal) + parseFloat(newAmount)
-        ).toString();
-        totalAmount = ethers.parseEther(sum);
+        // Convert string amount to BigInt and add to total
+        totalAmount = BigInt(totalAmount) + BigInt(recInfo.amount);
       }
+      console.log("apply Full Withdraw -> total Amount: ", totalAmount);
 
       if (totalAmount === "0") {
         throw new Error("No valid withdrawal amount found");
@@ -107,10 +102,14 @@ const Withdraw = () => {
       const address = await signer.getAddress();
       const msgToBeSigned = "withdraw" + toProcessDecodedString;
       console.log("Full withdraw msgToBeSigned", msgToBeSigned);
+      // Convert string to bytes before hashing
+      const messageBytes = ethers.toUtf8Bytes(msgToBeSigned);
+      const messageHash = ethers.keccak256(messageBytes);
       const signature = await window.ethereum.request({
         method: "personal_sign",
-        params: [ethers.keccak256(msgToBeSigned), address],
+        params: [messageHash, address],
       });
+      console.log("apply Full Withdraw -> signature: ", signature);
 
       // Check merkle root maturity before proceeding
       try {
@@ -140,7 +139,9 @@ const Withdraw = () => {
           );
         }
 
-        console.log("Merkle root is matured, proceeding with withdrawal...");
+        console.log(
+          "apply Full Withdraw -> Merkle root is matured, proceeding with withdrawal..."
+        );
       } catch (error) {
         console.error("Error checking merkle root maturity:", error);
         throw new Error(
@@ -162,7 +163,7 @@ const Withdraw = () => {
 
       //tests
       if (true) {
-        console.log(await globData.royalGrowcontractInstance.doWithdraw());
+        console.log(await globData.royalGrowcontractInstance.doWithdraw);
 
         // const data = web 3.eth.abi.encodeFunctionCall(
         //   {
@@ -509,18 +510,21 @@ const Withdraw = () => {
     console.log("Transaction hash:", receipt.hash);
   };
 
-  const handleWithdrawalEvent = async (event) => {
+  const handleWithdrawEvent = async (
+    withdrawer,
+    withdrawMsg,
+    signature,
+    amount,
+    timestamp,
+    event
+  ) => {
     console.log(
-      ` User: ${event.returnValues.user}, Amount: ${event.returnValues.amount} ⏱️ Timestamp: ${event.returnValues.timestamp} Stage: ${event.returnValues.stage}`
+      ` User: ${withdrawer}, Amount: ${amount} ⏱️ Timestamp: ${timestamp} Stage: ${event.stage}`
     );
     console.log(` Event: ${event}`);
 
-    if (event.returnValues.stage === 1) {
-      await investigateOnWithdraw(
-        event.returnValues.user,
-        event.returnValues.amount,
-        event.returnValues.timestamp
-      );
+    if (event.stage === 1) {
+      await investigateOnWithdraw(withdrawer, amount, timestamp);
     }
   };
 
@@ -534,23 +538,52 @@ const Withdraw = () => {
 
   // Initialize Ether and subscribe to event on component mount
   useEffect(() => {
+    // const subscribeToEvent = async () => {
+    //   if (
+    //     globData &&
+    //     globData.royalGrowcontractInstanc e.events &&
+    //     globData.royalGrowcontractInstanc e.events.WithdrawEvent
+    //   ) {
+    //     const subscription =
+    //       await globData.royalGrowcontractInstanc e.events.WithdrawEvent({
+    //         fromBlock: "latest",
+    //       });
+
+    //     subscription.on("data", async (event) => {
+    //       await handleWithdrawEvent(event);
+    //     });
+
+    //     subscription.on("error", console.error);
+    //   }
+    // };
     const subscribeToEvent = async () => {
-      if (
-        globData &&
-        globData.royalGrowcontractInstance.events &&
-        globData.royalGrowcontractInstance.events.WithdrawalEvent
-      ) {
-        const subscription =
-          await globData.royalGrowcontractInstance.events.WithdrawalEvent({
-            fromBlock: "latest",
-          });
-
-        subscription.on("data", async (event) => {
-          await handleWithdrawalEvent(event);
-        });
-
-        subscription.on("error", console.error);
-      }
+      // Listen for WithdrawEvent
+      globData.royalGrowcontractInstance.on(
+        "WithdrawEvent",
+        async (
+          withdrawer,
+          withdrawMsg,
+          signature,
+          amount,
+          timestamp,
+          event
+        ) => {
+          console.log("Withdrawal Event received!");
+          await handleWithdrawEvent(
+            withdrawer,
+            withdrawMsg,
+            signature,
+            amount,
+            timestamp,
+            event
+          );
+        }
+      );
+      // Listen for errors
+      globData.royalGrowcontractInstance.on("error", (error) => {
+        console.error("Error in event subscription:", error);
+      });
+      console.log("Withdrawal Event is registered!");
     };
 
     if (!globData) return;

@@ -64,19 +64,27 @@ const SCListeners = () => {
         uniqueId: String(uniqueId),
       });
     };
-    const handleWithdrawEvent = (event) => {
-      let msg = `Withdraw by ${event.returnValues.sender} ${ethers.formatEther(
-        event.returnValues.amount
-      )} Eth ID: ${event.returnValues.uniqueId}`;
+    const handleWithdrawEvent = (
+      withdrawer,
+      withdrawMsg,
+      signature,
+      amount,
+      timestamp,
+      event
+    ) => {
+      let msg = `Withdraw by ${withdrawer} ${ethers.formatEther(
+        amount
+      )} Eth ID: ${event.uniqueId}`;
+      console.log("handle Withdraw Event: ", event);
       console.log(msg);
       dspEvent(msg);
 
       postToBE("payment/logWithdraw", {
-        withdrawer: String(event.returnValues.withdrawer).toLowerCase(),
-        amount: String(event.returnValues.amount),
-        withdrawMsg: String(event.returnValues.withdrawMsg),
-        signature: String(event.returnValues.signature),
-        timestamp: String(event.returnValues.timestamp),
+        withdrawer: String(withdrawer).toLowerCase(),
+        amount: String(amount),
+        withdrawMsg: String(withdrawMsg),
+        signature: String(signature),
+        timestamp: String(timestamp),
       });
     };
 
@@ -98,8 +106,12 @@ const SCListeners = () => {
       });
     };
 
-    const handleCreditsMerkleRootUpdatedEvent = (event) => {
-      let msg = `Updating DCRootHash by ${event.returnValues.sender} Serial number (${event.returnValues.serialNumber}) root hash(${event.returnValues.creditsMerkleRoot})`;
+    const handleCreditsMerkleRootUpdatedEvent = (
+      serialNumber,
+      creditsMerkleRoot,
+      event
+    ) => {
+      let msg = `Updating DCRootHash by ${event.sender} Serial number (${serialNumber}) root hash(${creditsMerkleRoot})`;
       dspEvent(msg);
     };
 
@@ -115,36 +127,62 @@ const SCListeners = () => {
       console.log(msg);
     };
 
-    const handleObfBurntEvent = (event) => {
-      let msg = `Obf Burnt Event by ${event.returnValues.sender}
-      Burnt Obf Record (${event.returnValues.obfRecord}) 
+    const handleObfBurntEvent = (obfRecord, event) => {
+      let msg = `Obf Burnt Event by ${event}
+      Burnt Obf Record (${obfRecord}) 
       `;
       dspEvent(msg);
       console.log(msg);
     };
 
     const subscribeToEvent = async () => {
-      //   // Obf Burnt Event
-      //   const subsObfBurntEvent =
-      //     await globData.royalGrowcontractInstance.events.ObfBurntEvent({
-      //       fromBlock: "latest",
-      //     });
-      //   console.log("subs Obf Burnt Event is registered!");
-      //   subsObfBurntEvent.on("data", (event) => {
-      //     handleObfBurntEvent(event);
+      // Obf Burnt Event
+      // const subsObfBurntEvent =
+      //   await globData.royalGrowcontractInstanc e.events.ObfBurntEvent({
+      //     fromBlock: "latest",
       //   });
-      //   subsObfBurntEvent.on("error", dspEvent(console.error, "err"));
+      // console.log("subs Obf Burnt Event is registered!");
+      // subsObfBurntEvent.on("data", (event) => {
+      //   handleObfBurntEvent(event);
+      // });
+      // subsObfBurntEvent.on("error", dspEvent(console.error, "err"));
+      // Listen for ObfBurntEvent
+      globData.royalGrowcontractInstance.on(
+        "ObfBurntEvent",
+        (obfRecord, event) => {
+          console.log("Obf Burnt Event received!");
+          handleObfBurntEvent(obfRecord, event);
+        }
+      );
+      // Listen for errors
+      globData.royalGrowcontractInstance.on("error", (error) => {
+        dspEvent(console.error, "err", error);
+      });
+      console.log("subs Obf Burnt Event is registered!");
 
-      //   // Invalid DC Prof Event
-      //   const subsInvalidDCProfEvent =
-      //     await globData.royalGrowcontractInstance.events.InvalidDCProfEvent({
-      //       fromBlock: "latest",
-      //     });
-      //   console.log("Invalid DC Prof Event is registered!");
-      //   subsInvalidDCProfEvent.on("data", (event) => {
-      //     handleInvalidDCProfEvent(event);
+      // Invalid DC Prof Event
+      // const subsInvalidDCProfEvent =
+      //   await globData.royalGrowcontractInstanc e.events.InvalidDCProfEvent({
+      //     fromBlock: "latest",
       //   });
-      //   subsInvalidDCProfEvent.on("error", dspEvent(console.error, "err"));
+      // console.log("Invalid DC Prof Event is registered!");
+      // subsInvalidDCProfEvent.on("data", (event) => {
+      //   handleInvalidDCProfEvent(event);
+      // });
+      // subsInvalidDCProfEvent.on("error", dspEvent(console.error, "err"));
+      // Listen for InvalidDCProfEvent
+      globData.royalGrowcontractInstance.on(
+        "InvalidDCProfEvent",
+        (arg1, arg2, event) => {
+          console.log("Invalid DC Prof Event received!");
+          handleInvalidDCProfEvent(event);
+        }
+      );
+      // Listen for errors
+      globData.royalGrowcontractInstance.on("error", (error) => {
+        dspEvent(console.error, "err", error);
+      });
+      console.log("Invalid DC Prof Event is registered!");
 
       // Pay To Contract Event
       // const subsPayToContractEvent =
@@ -173,40 +211,90 @@ const SCListeners = () => {
 
       console.log("PayToContractEvent subscription is active!");
 
-      //   // Withdraw Event
-      //   const subsWithdrawEvent =
-      //     await globData.royalGrowcontractInstance.events.WithdrawEvent({
-      //       fromBlock: "latest",
-      //     });
-      //   subsWithdrawEvent.on("data", (event) => {
-      //     handleWithdrawEvent(event);
+      // Withdraw Event
+      // const subsWithdrawEvent =
+      //   await globData.royalGrowcontractInstanc e.events.WithdrawEvent({
+      //     fromBlock: "latest",
       //   });
-      //   subsWithdrawEvent.on("error", dspEvent(console.error, "err"));
+      // subsWithdrawEvent.on("data", (event) => {
+      //   handleWithdrawEvent(event);
+      // });
+      // subsWithdrawEvent.on("error", dspEvent(console.error, "err"));
+      // Listen for WithdrawEvent
+      globData.royalGrowcontractInstance.on(
+        "WithdrawEvent",
+        (withdrawer, withdrawMsg, signature, amount, timestamp, event) => {
+          console.log("Withdraw Event received!");
+          handleWithdrawEvent(
+            withdrawer,
+            withdrawMsg,
+            signature,
+            amount,
+            timestamp,
+            event
+          );
+        }
+      );
+      // Listen for errors
+      globData.royalGrowcontractInstance.on("error", (error) => {
+        dspEvent(console.error, "err", error);
+      });
+      console.log("Withdraw Event is registered!");
 
-      //   // Pay To Contract Event
-      //   const subsWithdrawAttempt =
-      //     await globData.royalGrowcontractInstance.events.WithdrawAttempt({
-      //       fromBlock: "latest",
-      //     });
-      //   subsWithdrawAttempt.on("data", (event) => {
-      //     handleWithdrawAttempt(event);
+      // Pay To Contract Event
+      // const subsWithdrawAttempt =
+      //   await globData.royalGrowcontractInstanc e.events.WithdrawAttempt({
+      //     fromBlock: "latest",
       //   });
-      //   subsWithdrawAttempt.on("error", dspEvent(console.error, "err"));
+      // subsWithdrawAttempt.on("data", (event) => {
+      //   handleWithdrawAttempt(event);
+      // });
+      // subsWithdrawAttempt.on("error", dspEvent(console.error, "err"));
+      // Listen for WithdrawAttempt event
+      globData.royalGrowcontractInstance.on(
+        "WithdrawAttempt",
+        (arg1, arg2, event) => {
+          console.log("Withdraw Attempt event received!");
+          handleWithdrawAttempt(event);
+        }
+      );
+      // Listen for errors
+      globData.royalGrowcontractInstance.on("error", (error) => {
+        dspEvent(console.error, "err", error);
+      });
+      console.log("Withdraw Attempt event is registered!");
 
-      //   // Credits Merkle Root Updated Event
-      //   const subsCreditsMerkleRootUpdatedEvent =
-      //     await globData.royalGrowcontractInstance.events.CreditsMerkleRootUpdatedEvent(
-      //       {
-      //         fromBlock: "latest",
-      //       }
-      //     );
-      //   subsCreditsMerkleRootUpdatedEvent.on("data", (event) => {
-      //     handleCreditsMerkleRootUpdatedEvent(event);
-      //   });
-      //   subsCreditsMerkleRootUpdatedEvent.on(
-      //     "error",
-      //     dspEvent(console.error, "err")
+      // Credits Merkle Root Updated Event
+      // const subsCreditsMerkleRootUpdatedEvent =
+      //   await globData.royalGrowcontractInstanc e.events.CreditsMerkleRootUpdatedEvent(
+      //     {
+      //       fromBlock: "latest",
+      //     }
       //   );
+      // subsCreditsMerkleRootUpdatedEvent.on("data", (event) => {
+      //   handleCreditsMerkleRootUpdatedEvent(event);
+      // });
+      // subsCreditsMerkleRootUpdatedEvent.on(
+      //   "error",
+      //   dspEvent(console.error, "err")
+      // );
+      // Listen for CreditsMerkleRootUpdatedEvent
+      globData.royalGrowcontractInstance.on(
+        "CreditsMerkleRootUpdatedEvent",
+        (serialNumber, creditsMerkleRoot, event) => {
+          console.log("Credits Merkle Root Updated Event received!");
+          handleCreditsMerkleRootUpdatedEvent(
+            serialNumber,
+            creditsMerkleRoot,
+            event
+          );
+        }
+      );
+      // Listen for errors
+      globData.royalGrowcontractInstance.on("error", (error) => {
+        dspEvent(console.error, "err", error);
+      });
+      console.log("Credits Merkle Root Updated Event is registered!");
     };
 
     if (!globData) return;

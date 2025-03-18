@@ -90,9 +90,9 @@
 //   // Initialize web3 and subscribe to event on component mount
 //   useEffect(() => {
 //     const subscribeToEvent = async () => {
-//       if (globData.royalGrowcontractInstance.events.WithdrawalEvent) {
+//       if (globData.royalGrowcontractInstanc e.events.WithdrawalEvent) {
 //         const subscription =
-//           await globData.royalGrowcontractInstance.events.WithdrawalEvent({
+//           await globData.royalGrowcontractInstanc e.events.WithdrawalEvent({
 //             fromBlock: "latest",
 //           });
 
