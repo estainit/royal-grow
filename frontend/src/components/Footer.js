@@ -17,16 +17,13 @@ function Footer() {
 
     setIsLoading(true); // Set loading state to true
     try {
-      const balance = await globData.royalGrowcontractInstance.methods
-        .getCreditorBalance()
-        .call({ from: selectedAccount });
+      const balance =
+        await globData.royalGrowcontractInstance.getCreditorBalance();
       const balanceInEther = ethers.formatEther(balance);
       setUserBalance(balanceInEther);
-
     } catch (error) {
       console.error("Error fetching user Balance:", error);
-      setError(error.message); 
-      
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }

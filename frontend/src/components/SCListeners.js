@@ -128,72 +128,72 @@ const SCListeners = () => {
     };
 
     const subscribeToEvent = async () => {
-      // Obf Burnt Event
-      const subsObfBurntEvent =
-        await globData.royalGrowcontractInstance.events.ObfBurntEvent({
-          fromBlock: "latest",
-        });
-      console.log("subs Obf Burnt Event is registered!");
-      subsObfBurntEvent.on("data", (event) => {
-        handleObfBurntEvent(event);
-      });
-      subsObfBurntEvent.on("error", dspEvent(console.error, "err"));
+    //   // Obf Burnt Event
+    //   const subsObfBurntEvent =
+    //     await globData.royalGrowcontractInstance.events.ObfBurntEvent({
+    //       fromBlock: "latest",
+    //     });
+    //   console.log("subs Obf Burnt Event is registered!");
+    //   subsObfBurntEvent.on("data", (event) => {
+    //     handleObfBurntEvent(event);
+    //   });
+    //   subsObfBurntEvent.on("error", dspEvent(console.error, "err"));
 
-      // Invalid DC Prof Event
-      const subsInvalidDCProfEvent =
-        await globData.royalGrowcontractInstance.events.InvalidDCProfEvent({
-          fromBlock: "latest",
-        });
-      console.log("Invalid DC Prof Event is registered!");
-      subsInvalidDCProfEvent.on("data", (event) => {
-        handleInvalidDCProfEvent(event);
-      });
-      subsInvalidDCProfEvent.on("error", dspEvent(console.error, "err"));
+    //   // Invalid DC Prof Event
+    //   const subsInvalidDCProfEvent =
+    //     await globData.royalGrowcontractInstance.events.InvalidDCProfEvent({
+    //       fromBlock: "latest",
+    //     });
+    //   console.log("Invalid DC Prof Event is registered!");
+    //   subsInvalidDCProfEvent.on("data", (event) => {
+    //     handleInvalidDCProfEvent(event);
+    //   });
+    //   subsInvalidDCProfEvent.on("error", dspEvent(console.error, "err"));
 
-      // Pay To Contract Event
-      const subsPayToContractEvent =
-        await globData.royalGrowcontractInstance.events.PayToContractEvent({
-          fromBlock: "latest",
-        });
-      subsPayToContractEvent.on("data", (event) => {
-        handlePayToContractEvent(event);
-      });
-      subsPayToContractEvent.on("error", dspEvent(console.error, "err"));
+    //   // Pay To Contract Event
+    //   const subsPayToContractEvent =
+    //     await globData.royalGrowcontractInstance.events.PayToContractEvent({
+    //       fromBlock: "latest",
+    //     });
+    //   subsPayToContractEvent.on("data", (event) => {
+    //     handlePayToContractEvent(event);
+    //   });
+    //   subsPayToContractEvent.on("error", dspEvent(console.error, "err"));
 
-      // Pay To Contract Event
-      const subsWithdrawEvent =
-        await globData.royalGrowcontractInstance.events.WithdrawEvent({
-          fromBlock: "latest",
-        });
-      subsWithdrawEvent.on("data", (event) => {
-        handleWithdrawEvent(event);
-      });
-      subsWithdrawEvent.on("error", dspEvent(console.error, "err"));
+    //   // Pay To Contract Event
+    //   const subsWithdrawEvent =
+    //     await globData.royalGrowcontractInstance.events.WithdrawEvent({
+    //       fromBlock: "latest",
+    //     });
+    //   subsWithdrawEvent.on("data", (event) => {
+    //     handleWithdrawEvent(event);
+    //   });
+    //   subsWithdrawEvent.on("error", dspEvent(console.error, "err"));
 
-      // Pay To Contract Event
-      const subsWithdrawAttempt =
-        await globData.royalGrowcontractInstance.events.WithdrawAttempt({
-          fromBlock: "latest",
-        });
-      subsWithdrawAttempt.on("data", (event) => {
-        handleWithdrawAttempt(event);
-      });
-      subsWithdrawAttempt.on("error", dspEvent(console.error, "err"));
+    //   // Pay To Contract Event
+    //   const subsWithdrawAttempt =
+    //     await globData.royalGrowcontractInstance.events.WithdrawAttempt({
+    //       fromBlock: "latest",
+    //     });
+    //   subsWithdrawAttempt.on("data", (event) => {
+    //     handleWithdrawAttempt(event);
+    //   });
+    //   subsWithdrawAttempt.on("error", dspEvent(console.error, "err"));
 
-      // Credits Merkle Root Updated Event
-      const subsCreditsMerkleRootUpdatedEvent =
-        await globData.royalGrowcontractInstance.events.CreditsMerkleRootUpdatedEvent(
-          {
-            fromBlock: "latest",
-          }
-        );
-      subsCreditsMerkleRootUpdatedEvent.on("data", (event) => {
-        handleCreditsMerkleRootUpdatedEvent(event);
-      });
-      subsCreditsMerkleRootUpdatedEvent.on(
-        "error",
-        dspEvent(console.error, "err")
-      );
+    //   // Credits Merkle Root Updated Event
+    //   const subsCreditsMerkleRootUpdatedEvent =
+    //     await globData.royalGrowcontractInstance.events.CreditsMerkleRootUpdatedEvent(
+    //       {
+    //         fromBlock: "latest",
+    //       }
+    //     );
+    //   subsCreditsMerkleRootUpdatedEvent.on("data", (event) => {
+    //     handleCreditsMerkleRootUpdatedEvent(event);
+    //   });
+    //   subsCreditsMerkleRootUpdatedEvent.on(
+    //     "error",
+    //     dspEvent(console.error, "err")
+    //   );
     };
 
     if (!globData) return;

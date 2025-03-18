@@ -32,6 +32,8 @@ export const AppProvider = ({ children }) => {
             RoyalGrow.abi,
             signer
           );
+          console.log("xxx ... ... xxx. ... .. xx...  . royalGrowcontract 1", royalGrowcontract);
+
 
           try {
             const getContractBalance = async () => {

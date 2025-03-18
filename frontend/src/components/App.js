@@ -73,20 +73,35 @@ function App() {
   useEffect(() => {
     const initSelectedAccount = async () => {
       try {
-        if (!globData || !globData.provider) return;
+        console.log("Initializing account...");
+        if (!globData || !globData.provider) {
+          console.log("No provider available");
+          return;
+        }
 
+        // First request account access
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        
         // Get the current accounts
         const accounts = await globData.provider.listAccounts();
 
         // If accounts exist, use the first one
         if (accounts && accounts.length > 0) {
-          setSelectedAccount(accounts[0]);
+          // accounts[0] is already the address string
+          setSelectedAccount(accounts[0].address);
+          // Use a timeout to verify the state update
+          setTimeout(() => {
+            console.log("Selected account after update:", selectedAccount);
+          }, 100);
+        } else {
+          console.log("No accounts available");
         }
 
         // Listen for account changes
-        globData.provider.on("accountsChanged", (newAccounts) => {
+        globData.provider.on("accountsChanged", async (newAccounts) => {
+          console.log("Account changed to:", newAccounts);
           if (newAccounts && newAccounts.length > 0) {
-            setSelectedAccount(newAccounts[0]);
+            setSelectedAccount(newAccounts[0].address);
           } else {
             setSelectedAccount("");
           }
@@ -94,6 +109,7 @@ function App() {
 
         // Listen for chain changes
         globData.provider.on("chainChanged", () => {
+          console.log("Chain changed, reloading...");
           window.location.reload();
         });
       } catch (error) {
@@ -107,11 +123,15 @@ function App() {
     // Cleanup function to remove event listeners
     return () => {
       if (globData && globData.provider) {
-        globData.provider.removeAllListeners("accountsChanged", {});
-        globData.provider.removeAllListeners("chainChanged", {});
+        globData.provider.removeAllListeners("accountsChanged");
+        globData.provider.removeAllListeners("chainChanged");
       }
     };
   }, [globData]);
+
+  useEffect(() => {
+    console.log("Selected account state changed to:", selectedAccount);
+  }, [selectedAccount]);
 
   return (
     <div className="App">
@@ -119,7 +139,9 @@ function App() {
         <p onClick={() => getContractBalance()} className="topLogoAndAccount">
           <span className="logo-text">Royal GrowTh!</span>
           <span className="account-info">
-            ({selectedAccount.slice(0, 6)}...{selectedAccount.slice(-4)})
+            {selectedAccount && typeof selectedAccount === 'string' && selectedAccount.length >= 10 
+              ? `${selectedAccount.slice(0, 6)}...${selectedAccount.slice(-4)}`
+              : 'No Account'}
           </span>
           {totalCredited && parseFloat(totalCredited) >= 0 && (
             <span className="eth-amount">{totalCredited} ETH</span>

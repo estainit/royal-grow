@@ -61,7 +61,9 @@ const SendMoney = () => {
 
     setIsLoading(true);
     try {
-      const selectedAccount = await getWalletSelectedAccountByWalletSigner(globData);
+      const selectedAccount = await getWalletSelectedAccountByWalletSigner(
+        globData
+      );
       const weiAmount = ethers.parseEther(amount);
 
       console.log("Sending money from selected account:", selectedAccount);
@@ -71,12 +73,17 @@ const SendMoney = () => {
         globData.royalGrowContractAddress
       );
 
-      await globData.royalGrowcontractInstance.methods.payToContract().send({
-        from: selectedAccount.address,
-        value: weiAmount,
+      const tx = await globData.royalGrowcontractInstance.payToContract({
+        value: weiAmount, // Send ETH along with the transaction
       });
+      const receipt = await tx.wait(); // Wait for confirmation
 
-      console.log("Transaction successful");
+      // await globData.royalGrowcontractInstanc e.methods.payToContract().send({
+      //   from: selectedAccount.address,
+      //   value: weiAmount,
+      // });
+
+      console.log("Transaction successful receipt: ", receipt);
       setAmount("");
     } catch (error) {
       console.error("Error sending money:", error);

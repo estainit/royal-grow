@@ -59,9 +59,10 @@ const Withdraw = () => {
   }
 
   const getWithdrowedByIndex = async () => {
-    const tx = await globData.royalGrowcontractInstance.methods
-      .getWithdrawedInfoByIndex(withdrowedIndex)
-      .call();
+    const tx =
+      await globData.royalGrowcontractInstance.getWithdrawedInfoByIndex(
+        withdrowedIndex
+      );
     console.log("get Withdrowed By Index res:", tx);
   };
 
@@ -114,14 +115,12 @@ const Withdraw = () => {
       // Check merkle root maturity before proceeding
       try {
         console.log("Checking merkle root maturity...");
-        const lastUpdate = await globData.royalGrowcontractInstance.methods
-          .lastUpdateDCMerkleRoot()
-          .call();
+        const lastUpdate =
+          await globData.royalGrowcontractInstance.lastUpdateDCMerkleRoot();
         console.log("Last update timestamp:", lastUpdate);
 
-        const coolDownWindow = await globData.royalGrowcontractInstance.methods
-          .dCMerkleRootCoolDownWindowTime()
-          .call();
+        const coolDownWindow =
+          await globData.royalGrowcontractInstance.dCMerkleRootCoolDownWindowTime();
         console.log("Cool down window (minutes):", coolDownWindow);
 
         const currentTime = Math.floor(Date.now() / 1000);
@@ -163,9 +162,7 @@ const Withdraw = () => {
 
       //tests
       if (true) {
-        console.log(
-          await globData.royalGrowcontractInstance.methods.doWithdraw
-        );
+        console.log(await globData.royalGrowcontractInstance.doWithdraw());
 
         // const data = web 3.eth.abi.encodeFunctionCall(
         //   {
@@ -186,17 +183,29 @@ const Withdraw = () => {
       }
 
       // Send transaction with gas limit
-      const tx = await globData.royalGrowcontractInstance.methods
-        .doWithdraw(
-          toProcessDecodedString,
-          totalAmount,
-          address.toString().toLowerCase(),
-          signature
-        )
-        .send({
-          from: address.toLowerCase(),
-          gas: gasLimit,
-        });
+      // const tx = await globData.royalGrowcontractInstanc e.methods
+      //   .doWithdraw(
+      //     toProcessDecodedString,
+      //     totalAmount,
+      //     address.toString().toLowerCase(),
+      //     signature
+      //   )
+      //   .send({
+      //     from: address.toLowerCase(),
+      //     gas: gasLimit,
+      //   });
+      const tx = await globData.royalGrowcontractInstance.doWithdraw(
+        toProcessDecodedString,
+        totalAmount,
+        address.toString().toLowerCase(),
+        signature,
+        {
+          gasLimit: ethers.toBigInt(gasLimit), // Optional: Convert gas limit if needed
+        }
+      );
+
+      const receipt2 = await tx.wait(); // Wait for confirmation
+      console.log("receipt2: ", receipt2);
 
       async function getTransactionReceipt(txHash) {
         try {
@@ -296,9 +305,8 @@ const Withdraw = () => {
     setIsLoading(true);
     setError(null);
     try {
-      let currentSerialNumber = await globData.royalGrowcontractInstance.methods
-        .getDCCurrentSerialNumber()
-        .call();
+      let currentSerialNumber =
+        await globData.royalGrowcontractInstance.getDCCurrentSerialNumber();
 
       const selectedAccount = await getWalletSelectedAccountByWalletSigner(
         globData
@@ -323,9 +331,7 @@ const Withdraw = () => {
   };
 
   const resetWithdrawed = async () => {
-    const tx = await globData.royalGrowcontractInstance.methods
-      .resetWithdrawed()
-      .call();
+    const tx = await globData.royalGrowcontractInstance.resetWithdrawed();
     console.log("reset Withdrawed res:", tx);
   };
 
@@ -366,14 +372,25 @@ const Withdraw = () => {
       });
 
       // Send transaction and get response
-      const tx = await globData.royalGrowcontractInstance.methods
-        .doWithdraw(
-          message,
-          amount,
-          address.toString().toLowerCase(),
-          signature
-        )
-        .send({ from: address.toLowerCase() });
+      // const tx = await globData.royalGrowcontractInstanc e.methods
+      //   .doWithdraw(
+      //     message,
+      //     amount,
+      //     address.toString().toLowerCase(),
+      //     signature
+      //   )
+      //   .send({ from: address.toLowerCase() });
+      const tx = await globData.royalGrowcontractInstance.doWithdraw(
+        message,
+        amount,
+        address.toString().toLowerCase(),
+        signature
+      );
+
+      // Wait for transaction confirmation
+      const receipt3 = await tx.wait();
+
+      console.log("Transaction confirmed:", receipt3);
 
       async function getTransactionReceipt(txHash) {
         try {
@@ -475,12 +492,21 @@ const Withdraw = () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const address = await signer.getAddress();
-    const tx = await globData.royalGrowcontractInstance.methods
-      .setCreditorBalance(message, etherToWei(amount))
-      .send({
-        from: address,
-      });
-    console.log("Transaction hash:", tx.transactionHash);
+    // const tx = await globData.royalGrowcontractInstanc e.methods
+    //   .setCreditorBalance(message, etherToWei(amount))
+    //   .send({
+    //     from: address,
+    //   });
+    // console.log("Transaction hash:", tx.transactionHash);
+    const tx = await globData.royalGrowcontractInstance.setCreditorBalance(
+      message,
+      ethers.parseUnits(amount, "ether")
+    );
+
+    // Wait for confirmation
+    const receipt = await tx.wait();
+
+    console.log("Transaction hash:", receipt.hash);
   };
 
   const handleWithdrawalEvent = async (event) => {

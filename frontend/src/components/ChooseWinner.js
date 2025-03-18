@@ -12,11 +12,11 @@ const ChooseWinner = ({ contractAddress }) => {
   const callChooseWinner = async () => {
     setIsLoading(true);
     try {
-      const selectedAccount = await getWalletSelectedAccountByWalletSigner(globData);
+      const selectedAccount = await getWalletSelectedAccountByWalletSigner(
+        globData
+      );
 
-      const tx = await globData.royalGrowcontractInstance.methods
-        .getDepositsBalance()
-        .send({ from: selectedAccount.address }); // Replace with your account address
+      const tx = await globData.royalGrowcontractInstance.getDepositsBalance();
       console.log("...........tx: ", tx);
       const receipt = await tx.wait();
       // Parse winner address from transaction events (assuming an event is emitted with winner details)

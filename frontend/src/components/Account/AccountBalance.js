@@ -77,9 +77,13 @@ const AccountBalance = () => {
 
     setIsLoading(true);
     try {
-      const balance = await globData.royalGrowcontractInstance.methods
-        .getCreditorBalance()
-        .call({ from: selectedAccount.address.toLowerCase() });
+      console.log(
+        "xxx ... ... xxx. ... .. xx...  . royalGrowcontract 2",
+        globData.royalGrowcontractInstance
+      );
+      const balance = await globData.royalGrowcontractInstance.getCreditorBalance({
+        args: [selectedAccount.address.toLowerCase()]
+      });
       console.log("get Creditor Balance: ", balance, " wei");
       const balanceInEther = weiToEther(balance);
       setOnchainCredit(balance);
@@ -136,9 +140,9 @@ const AccountBalance = () => {
 
   const verifyProof = async (uniqKey, leave, proof) => {
     proof = proof.split(",");
-    let validateDCProofRes = await globData.royalGrowcontractInstance.methods
-      .validateDCProof(leave, proof, 1)
-      .call();
+    let validateDCProofRes = await globData.royalGrowcontractInstance.validateDCProof({
+      args: [leave, proof, 1]
+    });
     console.log("validate DC Proof Res: ", validateDCProofRes);
     setProofVerifiyResults((prevResults) => ({
       ...prevResults,
@@ -147,9 +151,9 @@ const AccountBalance = () => {
   };
 
   const alreadyWithdrawed = async (obfRecord) => {
-    let alreadyWithdrawedRes = await globData.royalGrowcontractInstance.methods
-      .alreadyWithdrawed(obfRecord)
-      .call();
+    let alreadyWithdrawedRes = await globData.royalGrowcontractInstance.alreadyWithdrawed({
+      args: [obfRecord]
+    });
     console.log("Control already Withdrawed Res: ", alreadyWithdrawedRes);
     setWithdrawed((prevResults) => ({
       ...prevResults,
@@ -162,9 +166,9 @@ const AccountBalance = () => {
     console.log("clearRecord: ", clearRecord);
     let clearRecordInfo = clearRecordParser(clearRecord);
     console.log("clearRecordInfo: ", clearRecordInfo);
-    let validateDCCreditRes = await globData.royalGrowcontractInstance.methods
-      .validateDCCredit(clearRecord, proof)
-      .call();
+    let validateDCCreditRes = await globData.royalGrowcontractInstance.validateDCCredit({
+      args: [clearRecord, proof]
+    });
     console.log("validate DC Credit Res: ", validateDCCreditRes);
     setCreditVerifiyResults((prevResults) => ({
       ...prevResults,
@@ -177,10 +181,9 @@ const AccountBalance = () => {
       globData
     );
 
-    let currentSerialNumber;
-    currentSerialNumber = await globData.royalGrowcontractInstance.methods
-      .getDCCurrentSerialNumber()
-      .call();
+    let currentSerialNumber = await globData.royalGrowcontractInstance.getDCCurrentSerialNumber({
+      args: []
+    });
     console.log("currentSerialNumber=", currentSerialNumber);
 
     const rGCD = await getFromBE("dc/makeFullRGCD", {

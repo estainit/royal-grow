@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { ethers } from "ethers";
 import { AppContext } from "../AppContext";
 import { getWalletSelectedAccountByWalletSigner } from "../CUtils";
 
@@ -57,12 +58,11 @@ function AdminPanel() {
     setIsLast10DCVisible(true); // Make container visible when button is clicked
 
     try {
-      let last10DCRoots_ = await globData.royalGrowcontractInstance.methods
-        .getLast10DCRoots()
-        .call();
+      let last10DCRoots_ =
+        await globData.royalGrowcontractInstance.getLast10DCRoots();
       let localElems = [];
       console.log("last10DCRoots_", last10DCRoots_);
-      
+
       for (const inx of Object.keys(last10DCRoots_).sort()) {
         if (last10DCRoots_[inx].serialNumber.toString() !== "0") {
           localElems.push({
@@ -71,13 +71,12 @@ function AdminPanel() {
           });
         }
       }
-      
+
       console.log("Processed DC roots:", localElems);
       setLast10DCRoots(localElems);
 
-      let currentSerialNumber = await globData.royalGrowcontractInstance.methods
-        .getDCCurrentSerialNumber()
-        .call();
+      let currentSerialNumber =
+        await globData.royalGrowcontractInstance.getDCCurrentSerialNumber();
       console.log("current Serial Number=", currentSerialNumber);
     } catch (error) {
       console.error("Error fetching last 10 DC Roots:", error);
@@ -99,9 +98,8 @@ function AdminPanel() {
     let currentSerialNumber;
     let futureSerialNumber;
     try {
-      currentSerialNumber = await globData.royalGrowcontractInstance.methods
-        .getDCCurrentSerialNumber()
-        .call();
+      currentSerialNumber =
+        await globData.royalGrowcontractInstance.getDCCurrentSerialNumber();
       console.log("currentSerialNumber=", currentSerialNumber);
       futureSerialNumber = currentSerialNumber + 1n;
       console.log("futureSerialNumber=", futureSerialNumber);
@@ -128,9 +126,17 @@ function AdminPanel() {
     console.log("byte8Data:", byte8Data);
 
     // Call the smart contract method
-    const tx = await globData.royalGrowcontractInstance.methods
-      .updateCreditsMerkleRoot(byte8Data)
-      .send({ from: selectedAccount.address });
+    const tx = await globData.royalGrowcontractInstance.updateCreditsMerkleRoot(
+      byte8Data,
+      {
+        gasLimit: ethers.toBigInt(300000), // Optional: Adjust gas if needed
+      }
+    );
+    const receipt = await tx.wait(); // Wait for transaction confirmation
+
+    // const tx = await globData.royalGrowcontractInstanc e.methods
+    //   .updateCreditsMerkleRoot(byte8Data)
+    //   .send({ from: selectedAccount.address });
 
     console.log("update Credits Merkle Root:", tx);
 
@@ -151,8 +157,8 @@ function AdminPanel() {
     <div className="adminPanelContainer">
       <div className="getLast10DCRoots">
         <div className="dc-roots-header">
-          <button 
-            onClick={getLast10DCRoots} 
+          <button
+            onClick={getLast10DCRoots}
             disabled={isLoading}
             className="update-button history-button dc-history-btn"
             title="Get the last 10 Detailed Credit roots"
@@ -170,16 +176,24 @@ function AdminPanel() {
             )}
           </button>
           {last10DCRoots.length > 0 && (
-            <div 
-              className="dc-roots-toggle" 
+            <div
+              className="dc-roots-toggle"
               onClick={() => setIsLast10DCVisible(!isLast10DCVisible)}
               title={isLast10DCVisible ? "Hide DC Roots" : "Show DC Roots"}
             >
-              <i className={`fas ${isLast10DCVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+              <i
+                className={`fas ${
+                  isLast10DCVisible ? "fa-chevron-up" : "fa-chevron-down"
+                }`}
+              ></i>
             </div>
           )}
         </div>
-        <div className={`last10DCContainer ${isLast10DCVisible ? 'visible' : 'hidden'}`}>
+        <div
+          className={`last10DCContainer ${
+            isLast10DCVisible ? "visible" : "hidden"
+          }`}
+        >
           {last10DCRoots.map((elm) => (
             <span
               key={elm.serialNumber}
@@ -196,7 +210,7 @@ function AdminPanel() {
           fullDC,
           hasRecords: fullDC?.records?.length > 0,
           recordsLength: fullDC?.records?.length,
-          records: fullDC?.records
+          records: fullDC?.records,
         })}
         <DetailedCredits fullDC={fullDC} />
       </div>
@@ -204,8 +218,8 @@ function AdminPanel() {
       <OfflineBalances />
 
       <div className="button-container">
-        <button 
-          onClick={updateCreditsMerkleRoot} 
+        <button
+          onClick={updateCreditsMerkleRoot}
           disabled={isLoading}
           className="update-button"
           title="Update the merkle root of credit details (runs every 5 minutes)"
@@ -222,8 +236,9 @@ function AdminPanel() {
             </>
           )}
         </button>
-        <button style={{visibility: 'hidden'}}
-          onClick={makeFullRGCD} 
+        <button
+          style={{ visibility: "hidden" }}
+          onClick={makeFullRGCD}
           disabled={isLoading}
           className="print-button"
           title="Generate and print Royal Grow Credit Details"
@@ -240,7 +255,8 @@ function AdminPanel() {
             </>
           )}
         </button>
-        <input style={{visibility: 'hidden'}}
+        <input
+          style={{ visibility: "hidden" }}
           type="number"
           value={serialNumber}
           onChange={handleChangeSerialNumber}
