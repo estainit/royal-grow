@@ -97,20 +97,20 @@ function App() {
           console.log("No accounts available");
         }
 
-        // Listen for account changes
-        globData.provider.on("accountsChanged", async (newAccounts) => {
+        // Listen for chain changes
+        globData.provider.on("network", async (newNetwork, oldNetwork) => {
+          console.log("Network changed from", oldNetwork?.name, "to", newNetwork.name);
+          // Handle network change
+        });
+
+        // Listen for account changes using window.ethereum
+        window.ethereum.on("accountsChanged", async (newAccounts) => {
           console.log("Account changed to:", newAccounts);
           if (newAccounts && newAccounts.length > 0) {
             setSelectedAccount(newAccounts[0].address);
           } else {
             setSelectedAccount("");
           }
-        });
-
-        // Listen for chain changes
-        globData.provider.on("chainChanged", () => {
-          console.log("Chain changed, reloading...");
-          window.location.reload();
         });
       } catch (error) {
         console.error("Error getting selected account:", error);
@@ -123,9 +123,10 @@ function App() {
     // Cleanup function to remove event listeners
     return () => {
       if (globData && globData.provider) {
-        globData.provider.removeAllListeners("accountsChanged");
-        globData.provider.removeAllListeners("chainChanged");
+        globData.provider.removeAllListeners("network");
       }
+      // Remove window.ethereum listeners
+      window.ethereum.removeAllListeners("accountsChanged");
     };
   }, [globData]);
 

@@ -156,114 +156,79 @@ const Withdraw = () => {
       );
       console.log("Sending withdraw transaction... totalAmount", totalAmount);
 
-      // First try to estimate gas
-      // try {
-      // Add 20% buffer to gas estimate
-      const gasLimit = 99999; //Math.floor(Number(gasEstimate) * 1.2);
+      // Format parameters properly
+      const formattedAddress = address.toString().toLowerCase();
+      const formattedAmount = BigInt(totalAmount);
+      const formattedSignature = signature.startsWith('0x') ? signature : `0x${signature}`;
 
-      //tests
-      if (true) {
-        console.log(await globData.royalGrowcontractInstance.doWithdraw);
+      console.log("Formatted parameters: ", {
+        msg: toProcessDecodedString,
+        amount: formattedAmount.toString(),
+        address: formattedAddress,
+        signature: formattedSignature,
+      });
 
-        // const data = web 3.eth.abi.encodeFunctionCall(
-        //   {
-        //     name: "doWithdraw",
-        //     type: "function",
-        //     inputs: [
-        //       { type: "string", name: "_msg" },
-        //       { type: "uint256", name: "_amount" },
-        //       { type: "string", name: "signer" },
-        //       { type: "bytes", name: "signature" },
-        //     ],
-        //   },
-        //   ["test", "100", "0xYourAddress", "0xYourSignature"]
-        // );
+      try {
+        // First try to estimate gas
+        const gasEstimate = await globData.royalGrowcontractInstance.doWithdraw.estimateGas(
+          toProcessDecodedString,
+          formattedAmount,
+          formattedAddress,
+          formattedSignature
+        );
+        
+        // Add 20% buffer to gas estimate
+        const gasLimit = Math.floor(Number(gasEstimate) * 1.2);
 
-        // const result = await web 3.eth.call({ to: contractAddress, data });
-        // console.log(result);
-      }
+        console.log("Estimated gas:", gasEstimate.toString());
+        console.log("Gas limit with buffer:", gasLimit);
 
-      // Send transaction with gas limit
-      // const tx = await globData.royalGrowcontractInstanc e.methods
-      //   .doWithdraw(
-      //     toProcessDecodedString,
-      //     totalAmount,
-      //     address.toString().toLowerCase(),
-      //     signature
-      //   )
-      //   .send({
-      //     from: address.toLowerCase(),
-      //     gas: gasLimit,
-      //   });
-      const tx = await globData.royalGrowcontractInstance.doWithdraw(
-        toProcessDecodedString,
-        totalAmount,
-        address.toString().toLowerCase(),
-        signature,
-        {
-          gasLimit: ethers.toBigInt(gasLimit), // Optional: Convert gas limit if needed
+        // Send transaction with estimated gas
+        const tx = await globData.royalGrowcontractInstance.doWithdraw(
+          toProcessDecodedString,
+          formattedAmount,
+          formattedAddress,
+          formattedSignature,
+          {
+            gasLimit: BigInt(gasLimit)
+          }
+        );
+
+        console.log("Transaction sent:", tx.hash);
+        const receipt = await tx.wait();
+        console.log("Transaction receipt:", receipt);
+
+        if (receipt.status === 1) {
+          dspEvent("Withdrawal successful!", "success");
+          // Clear the form
+          setEncryotedDC("");
+          setClearDC("");
+          safeUpdateTextArea(textAreaRefEnc, "");
+          safeUpdateTextArea(textAreaRefClr, "");
+        } else {
+          throw new Error("Transaction failed");
         }
-      );
-
-      const receipt2 = await tx.wait(); // Wait for confirmation
-      console.log("receipt2: ", receipt2);
-
-      async function getTransactionReceipt(txHash) {
-        try {
-          const receipt = await globData.provider.getTransactionReceipt(txHash);
-          return receipt;
-        } catch (error) {
-          throw error; // Handle error appropriately
+      } catch (txError) {
+        console.error("Transaction error details:", {
+          error: txError,
+          message: txError.message,
+          code: txError.code,
+          data: txError.data
+        });
+        
+        // Try to get more specific error information
+        let errorMessage = txError.message;
+        if (txError.data) {
+          try {
+            const errorData = JSON.parse(txError.data);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            console.error("Error parsing error data:", e);
+          }
         }
+        
+        throw new Error(`Transaction failed: ${errorMessage}`);
       }
-      const receipt = await getTransactionReceipt(tx.hash);
-      console.log("Transaction Receipt:", receipt);
-
-      // // Wait for confirmation using Web 3.js method
-      // await new Promise((resolve, reject) => {
-      //   globData.web 3.eth.getTransactionReceipt(
-      //     tx.transactionHash,
-      //     (error, receipt) => {
-      //       if (error) {
-      //         reject(error);
-      //       } else if (receipt) {
-      //         resolve(receipt);
-      //       } else {
-      //         // If no receipt yet, poll every 2 seconds
-      //         const interval = setInterval(() => {
-      //           globData.web 3.eth.getTransactionReceipt(
-      //             tx.transactionHash,
-      //             (error, receipt) => {
-      //               if (error) {
-      //                 clearInterval(interval);
-      //                 reject(error);
-      //               } else if (receipt) {
-      //                 clearInterval(interval);
-      //                 resolve(receipt);
-      //               }
-      //             }
-      //           );
-      //         }, 2000);
-      //       }
-      //     }
-      //   );
-      // });
-
-      if (tx.status) {
-        // Show success message
-        dspEvent("Withdrawal successful!", "success");
-        // Clear the form
-        setEncryotedDC("");
-        setClearDC("");
-        safeUpdateTextArea(textAreaRefEnc, "");
-        safeUpdateTextArea(textAreaRefClr, "");
-      } else {
-        throw new Error("Transaction failed");
-      }
-      // } catch (gasError) {
-      //   console.error("Gas estimation error:", gasError);
-      //   throw new Error(`Transaction would fail: ${gasError.message}`);
-      // }
     } catch (error) {
       console.error("Withdrawal error:", error.reason);
       console.error("Withdrawal error:", error);
@@ -557,33 +522,26 @@ const Withdraw = () => {
     //   }
     // };
     const subscribeToEvent = async () => {
-      // Listen for WithdrawEvent
-      globData.royalGrowcontractInstance.on(
-        "WithdrawEvent",
-        async (
-          withdrawer,
-          withdrawMsg,
-          signature,
-          amount,
-          timestamp,
-          event
-        ) => {
-          console.log("Withdrawal Event received!");
-          await handleWithdrawEvent(
-            withdrawer,
-            withdrawMsg,
-            signature,
-            amount,
-            timestamp,
-            event
-          );
-        }
-      );
-      // Listen for errors
-      globData.royalGrowcontractInstance.on("error", (error) => {
-        console.error("Error in event subscription:", error);
-      });
-      console.log("Withdrawal Event is registered!");
+      try {
+        // Listen for WithdrawEvent using ethers.js v6 syntax
+        globData.royalGrowcontractInstance.on(
+          "WithdrawEvent",
+          async (withdrawer, withdrawMsg, signature, amount, timestamp, event) => {
+            console.log("Withdrawal Event received!");
+            await handleWithdrawEvent(
+              withdrawer,
+              withdrawMsg,
+              signature,
+              amount,
+              timestamp,
+              event
+            );
+          }
+        );
+        console.log("Withdrawal Event is registered!");
+      } catch (error) {
+        console.error("Error setting up event listener:", error);
+      }
     };
 
     if (!globData) return;
