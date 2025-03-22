@@ -27,7 +27,8 @@ services:
     image: rgi_be
     container_name: rgc_be
     ports:
-    - "3100:3100"
+      - "3100:3100"  # your existing port
+      - "9229:9229"  # debug port
     volumes:
       - ./backend:/backend
       - /backend/node_modules  # Preserve container's node_modules
