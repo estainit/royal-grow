@@ -10,8 +10,8 @@ WORKDIR /hardhat
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (ensure Hardhat is installed locally)
+RUN npm ci && npx hardhat --version
 
 # Copy the rest of the application code
 COPY . .
@@ -19,10 +19,8 @@ COPY . .
 # Expose the port Hardhat runs on (default: 8545)
 EXPOSE 8545
 
-VOLUME ["hardhat"]
+# Define the volume
+VOLUME ["/hardhat"]
 
-# # Start Hardhat node
-# CMD ["npx", "hardhat", "node"]
-
-# Start Hardhat node with hostname 0.0.0.0
+# Ensure Hardhat runs as a locally installed package
 CMD ["npx", "hardhat", "node", "--hostname", "0.0.0.0"]
