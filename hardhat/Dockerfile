@@ -7,20 +7,23 @@ RUN apk add --no-cache bash
 # Set working directory
 WORKDIR /hardhat
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json first (better for caching)
 COPY package*.json ./
 
-# Install dependencies (ensure Hardhat is installed locally)
-RUN npm ci && npx hardhat --version
+# Install dependencies **before** copying the rest of the project
+RUN npm install hardhat --save-dev && npm ci
 
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port Hardhat runs on (default: 8545)
+# Ensure the installed Hardhat version is working
+RUN npx hardhat --version
+
+# Expose the Hardhat node port
 EXPOSE 8545
 
-# Define the volume
+# Define the volume (persist blockchain data)
 VOLUME ["/hardhat"]
 
-# Ensure Hardhat runs as a locally installed package
+# Run Hardhat node with explicit local installation
 CMD ["npx", "hardhat", "node", "--hostname", "0.0.0.0"]
