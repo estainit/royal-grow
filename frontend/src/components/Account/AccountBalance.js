@@ -11,11 +11,12 @@ import {
   clearRecordParser,
 } from "../CUtils";
 import "./AccountBalance.css";
+import { ethers } from "ethers";
 
 import Withdraw from "./Withdraw";
 import TransferFund from "./TransferFund";
 
-const AccountBalance = () => {
+const AccountBalance = ({ onConnect }) => {
   const { globData } = useContext(AppContext);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +34,7 @@ const AccountBalance = () => {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [isDetailedCreditsVisible, setIsDetailedCreditsVisible] = useState(false);
   const [isTransactionHistoryVisible, setIsTransactionHistoryVisible] = useState(true);
+  const [userBalance, setUserBalance] = useState(null);
 
   const fetchOffchainPayedToContract = async () => {
     const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(
@@ -69,27 +71,24 @@ const AccountBalance = () => {
   };
 
   const fetchOnchainBalance = async () => {
-    if (!globData) return;
-
-    const selectedAccount = await getWalletSelectedAccountByWalletSigner(
-      globData
-    );
-
+    if (!globData || !globData.royalGrowcontractInstance) return;
+    
     setIsLoading(true);
     try {
-      console.log(
-        "xxx ... ... xxx. ... .. xx...  . royalGrowcontract 2",
-        globData.royalGrowcontractInstance
-      );
-      const balance = await globData.royalGrowcontractInstance.getCreditorBalance({
-        args: [selectedAccount.address.toLowerCase()]
-      });
-      console.log("get Creditor Balance: ", balance, " wei");
-      const balanceInEther = weiToEther(balance);
+      // Get the current account without requesting access
+      const accounts = await globData.provider.listAccounts();
+      if (!accounts || accounts.length === 0) {
+        setUserBalance(null);
+        return;
+      }
+
+      const balance = await globData.royalGrowcontractInstance.getCreditorBalance();
+      setUserBalance(ethers.formatEther(balance));
       setOnchainCredit(balance);
     } catch (error) {
       console.error("Error fetching user Balance:", error);
       setError(error.message);
+      setUserBalance(null);
     } finally {
       setIsLoading(false);
     }
@@ -119,15 +118,47 @@ const AccountBalance = () => {
     }
   };
 
+  const handleInitialConnect = async () => {
+    if (!globData || !globData.provider) return;
+    
+    try {
+      // Check if we already have accounts
+      const accounts = await globData.provider.listAccounts();
+      if (accounts && accounts.length > 0) {
+        // If we have accounts, fetch the balance without requesting access
+        await fetchOnchainBalance();
+      } else {
+        // If no accounts, show connect button
+        setUserBalance(null);
+      }
+    } catch (error) {
+      console.error("Error checking connection:", error);
+      setUserBalance(null);
+    }
+  };
+
+  useEffect(() => {
+    handleInitialConnect();
+  }, [globData]);
+
+  const handleConnect = async () => {
+    if (onConnect) {
+      await onConnect();
+      await fetchOnchainBalance();
+    }
+  };
+
   useEffect(() => {
     if (!globData) return;
 
     const init = async () => {
       setIsLoading(true);
       try {
+        // Only fetch offchain data initially
         await fetchOffchainPayedToContract();
         await fetchRGCredit();
-        await fetchOnchainBalance();
+        // Don't fetch onchain balance automatically
+        // await fetchOnchainBalance();
         await fetchTransactionHistory();
       } catch (error) {
         console.error("Error initializing:", error);
@@ -443,6 +474,13 @@ const AccountBalance = () => {
           </Row>
         </div>
         <div>
+          {isLoading ? (
+            <p>Loading balance...</p>
+          ) : userBalance !== null ? (
+            <p>{userBalance} ETH</p>
+          ) : (
+            <button onClick={handleConnect}>Connect Wallet</button>
+          )}
         </div>
       </div>
     </div>

@@ -408,7 +408,7 @@ const Withdraw = () => {
       const returnData = receipt.logs[0].data;
 
       // Decode the tuple (bool, string) from the return data
-      const decoded = ethers.defaultAbiCoder.decode(
+      const decodedData = ethers.AbiCoder.decode(
         ["bool", "string"],
         returnData
       );
@@ -417,7 +417,7 @@ const Withdraw = () => {
       //   returnData
       // );
 
-      const [success, responseMessage] = decodedReturn;
+      const [success, responseMessage] = decodedData;
 
       if (success) {
         dspEvent(`Withdrawal successful! ${responseMessage}`, "success");

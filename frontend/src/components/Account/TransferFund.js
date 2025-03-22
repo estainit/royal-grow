@@ -1,10 +1,10 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../AppContext";
+import { ethers } from "ethers";
 
 import {
   getNow,
   postToBE,
-  doKeccak256,
   getWalletSelectedAccountByWalletSigner,
   etherToWei,
 } from "../CUtils";
@@ -58,27 +58,25 @@ function TransferFund() {
     try {
       setIsLoading(true);
       const signer = await getWalletSelectedAccountByWalletSigner(globData);
-      const signerAddress = await signer.getAddress();
+      const address = await signer.getAddress();
+      const timestamp = getNow();
+      const msgToBeSigned = `${timestamp},${address},${recipientAddress},${amount},${textMessage}`;
+      console.log("Transfer msgToBeSigned", msgToBeSigned);
 
-      let timestamp = getNow();
-      let toBeSignedMessage =
-        timestamp +
-        "," +
-        signerAddress.toLowerCase() +
-        "," +
-        recipientAddress.toLowerCase() +
-        "," +
-        etherToWei(amount) +
-        "," +
-        textMessage;
-      
-      const hashedMessage = doKeccak256(globData, toBeSignedMessage);
-      const signature = await signer.signMessage(hashedMessage);
+      // Convert string to bytes before hashing
+      const messageBytes = ethers.toUtf8Bytes(msgToBeSigned);
+      console.log("Transfer messageBytes", messageBytes);
+      const messageHash = ethers.keccak256(messageBytes);
+      const signature = await window.ethereum.request({
+        method: "personal_sign",
+        params: [messageHash, address],
+      });
+      console.log("Transfer signature: ", signature);
 
       // send to backend
       let transferRes = await postToBE("payment/doTransferFund", {
         timestamp,
-        sender: signerAddress.toLowerCase(),
+        sender: address.toLowerCase(),
         amount: etherToWei(amount),
         recipientAddress: recipientAddress.toLowerCase(),
         textMessage,

@@ -28,7 +28,6 @@ function App() {
   const getContractBalance = async () => {
     if (!globData) return;
 
-    await window.ethereum.request({ method: "eth_requestAccounts" });
     try {
       if (!globData || !globData.provider) {
         console.error("Ether is not initialized!");
@@ -43,32 +42,37 @@ function App() {
       }
 
       await checkConnection(globData.provider);
-      // globData.web 3.eth.net
-      //   .isListening()
-      //   .then(() => console.log("Connected to a Blockchain"))
-      //   .catch((err) => console.error("Not connected:", err));
 
       const contractBalance = await globData.provider.getBalance(
         globData.royalGrowContractAddress
       );
-      // const contractBalance = await globData.web 3.eth.getBalance(
-      //   globData.royalGrowContractAddress
-      // );
       const balanceInEther = ethers.formatEther(contractBalance);
       setTotalCredited(balanceInEther);
     } catch (error) {
       console.error("Error fetching contract balance:", error);
-    } finally {
     }
   };
 
   useEffect(() => {
     if (globData) {
+      // Only fetch contract balance, not user balance
       getContractBalance();
     } else {
       setTimeout(() => getContractBalance(), 1000);
     }
   }, []);
+
+  // Add a new function to fetch user balance when needed
+  const fetchUserBalance = async () => {
+    try {
+      // Request account access only when explicitly needed
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      // Now you can fetch the user balance
+      // Add your balance fetching logic here
+    } catch (error) {
+      console.error("Error fetching user balance:", error);
+    }
+  };
 
   useEffect(() => {
     const initSelectedAccount = async () => {
@@ -79,20 +83,12 @@ function App() {
           return;
         }
 
-        // First request account access
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        
-        // Get the current accounts
+        // Get the current accounts without requesting access
         const accounts = await globData.provider.listAccounts();
 
         // If accounts exist, use the first one
         if (accounts && accounts.length > 0) {
-          // accounts[0] is already the address string
           setSelectedAccount(accounts[0].address);
-          // Use a timeout to verify the state update
-          setTimeout(() => {
-            console.log("Selected account after update:", selectedAccount);
-          }, 100);
         } else {
           console.log("No accounts available");
         }
@@ -153,7 +149,7 @@ function App() {
 
       <main className="main-content">
         <div className="dashboard-section balance-section">
-          <AccountBalance />
+          <AccountBalance onConnect={fetchUserBalance} />
         </div>
 
         <div className="dashboard-section transactions-section">
