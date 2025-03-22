@@ -1,13 +1,13 @@
-# Use Node.js 18 Alpine as base image
+# Use Node.js 18 alpine image for a lightweight base
 FROM node:18-alpine
 
-# Install bash and necessary dependencies
+# Install bash (optional, only if needed)
 RUN apk add --no-cache bash
 
-# Set working directory inside the container
+# Set working directory
 WORKDIR /hardhat
 
-# Copy package.json and package-lock.json first (for better caching)
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies (Ensure Hardhat is installed locally)
