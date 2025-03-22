@@ -1,29 +1,27 @@
-# Use Node.js 18 Alpine for a lightweight base
+# Use Node.js 18 Alpine
 FROM node:18-alpine
 
-# Install bash (optional)
+# Install bash & required dependencies
 RUN apk add --no-cache bash
 
 # Set working directory
 WORKDIR /hardhat
 
-# Copy package.json and package-lock.json first for caching
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install Hardhat explicitly as a local dependency
+# Force local installation of Hardhat
 RUN npm install --save-dev hardhat && npm ci
 
-# Copy the rest of the application code
+# Copy remaining files
 COPY . .
 
-# Verify that Hardhat is correctly installed
+# Ensure Hardhat is installed in node_modules
 RUN ls -la node_modules/.bin && npx hardhat --version
 
-# Expose the Hardhat node port
+# Expose Hardhat's default port
 EXPOSE 8545
 
-# Define the volume (persist blockchain data)
-VOLUME ["hardhat"]
-
-# Run Hardhat node using local installation
-CMD ["npx", "hardhat", "node", "--hostname", "0.0.0.0"]
+# Force usage of local Hardhat installation
+ENTRYPOINT ["npx", "hardhat"]
+CMD ["node", "--hostname", "0.0.0.0"]
