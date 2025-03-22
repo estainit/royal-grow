@@ -13,7 +13,7 @@ ENV POSTGRES_DB=${POSTGRES_DB}
 COPY init.sql /docker-entrypoint-initdb.d/
 
 # Expose PostgreSQL port
-EXPOSE 5432
+EXPOSE 5433
 
 # Start PostgreSQL service automatically when the container starts
 CMD ["postgres"]
