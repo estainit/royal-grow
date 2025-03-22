@@ -36,7 +36,7 @@ module.exports = {
  */
 
     localhost: {
-      url: "http://127.0.0.1:8545",
+      url: "hardhat:8545", // http://127.0.0.1:8545
       chainId: 31337, // default was 1337
       accounts: [`${ACC_LOCAL_HH_PRIVATE_KEY}`],
     },
