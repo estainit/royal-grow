@@ -1,5 +1,13 @@
 {
   "name": "hardhat-project",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npx hardhat test",
+    "node": "npx hardhat node",
+    "compile": "npx hardhat compile"
+  },
+  "dependencies": {},
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "hardhat": "^2.22.19"
