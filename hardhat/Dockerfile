@@ -10,7 +10,7 @@ WORKDIR /hardhat
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-RUN npm uninstall -g hardhat
+RUN npm uninstall -g hardhat || true
 
 # Install dependencies (ensure Hardhat is installed locally)
 RUN npm ci  # npm install is not reliable, use ci for clean install
