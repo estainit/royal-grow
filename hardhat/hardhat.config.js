@@ -36,15 +36,21 @@ module.exports = {
  */
 
     localhost: {
-      url: "http://127.0.0.1:8545", // http://127.0.0.1:8545,  http://113.30.150.33:8545
-      chainId: 31337, // default was 1337
+      url: process.env.HTTPS === 'true' 
+        ? "https://0.0.0.0:8545" 
+        : "http://0.0.0.0:8545",
+      chainId: 31337,
       accounts: [`${ACC_LOCAL_HH_PRIVATE_KEY}`],
       http: {
         cors: {
           origin: ["https://cryptafe.com", "http://localhost:81"],
           methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
           allowedHeaders: ["Content-Type", "Authorization"]
-        }
+        },
+        ssl: process.env.HTTPS === 'true' ? {
+          cert: process.env.SSL_CERT_PATH,
+          key: process.env.SSL_KEY_PATH
+        } : undefined
       }
     },
 
