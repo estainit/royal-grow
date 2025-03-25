@@ -38,22 +38,31 @@ async function doTransferFund(
       textMessage;
     console.log(" ......... toBeSignedMessage:", toBeSignedMessage);
 
+    //const messageBytes = ethers.toUtf8Bytes(toBeSignedMessage);
     const hashedMessage = doKeccak256(toBeSignedMessage);
     console.log(" ......... hashedMessage:", hashedMessage);
 
-    const recoveredAddress = ethers.verifyMessage(hashedMessage, signature);
-    console.log("Signer address_:", recoveredAddress);
-    if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
-      console.log("Signature is valid.");
-    } else {
-      console.log(
-        "Signature is not valid.",
-        recoveredAddress.toLowerCase(),
-        signerAddress.toLowerCase()
-      );
+    try {
+      const recoveredAddress = ethers.verifyMessage(toBeSignedMessage, signature);
+      console.log("Signer address_A:", recoveredAddress);
+      if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
+        console.log("Signature is valid.");
+      } else {
+        console.log(
+          "Signature is not valid.",
+          recoveredAddress.toLowerCase(),
+          signerAddress.toLowerCase()
+        );
+        return {
+          stat: false,
+          msg: "Invalid Signature!",
+        };
+      }
+    } catch (error) {
+      console.error("Error verifying signature:", error);
       return {
         stat: false,
-        msg: "Invalid Signature!",
+        msg: "Error verifying signature: " + error.message,
       };
     }
 

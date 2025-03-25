@@ -54,7 +54,7 @@ router.post("/logWithdraw", async (req, res) => {
   const hashedMessage = keccak256(toBeSignedMessage);
   console.log(" ......... hashedMessage:", hashedMessage);
   const recoveredAddress = ethers.verifyMessage(hashedMessage, signature);
-  console.log("Signer address_:", recoveredAddress);
+  console.log("Signer address_B:", recoveredAddress);
   if (recoveredAddress.toLowerCase() === withdrawer.toLowerCase()) {
     console.log("Signature is valid.");
   } else {

@@ -54,30 +54,30 @@ function TransferFund() {
 
   const handleTransfer = async () => {
     if (!globData || !validateForm()) return;
-
+    const amountInWei = etherToWei(amount);
     try {
       setIsLoading(true);
       const signer = await getWalletSelectedAccountByWalletSigner(globData);
+      console.log("fffffffff signer:", signer);
       const address = await signer.getAddress();
+      console.log("fffffffff address:", address);
       const timestamp = getNow();
-      const msgToBeSigned = `${timestamp},${address},${recipientAddress},${amount},${textMessage}`;
+      const msgToBeSigned = timestamp + "," + 
+        address.toLowerCase() + "," + 
+        recipientAddress.toLowerCase() + "," + 
+        amountInWei + "," + 
+        textMessage;
       console.log("Transfer msgToBeSigned", msgToBeSigned);
 
-      // Convert string to bytes before hashing
-      const messageBytes = ethers.toUtf8Bytes(msgToBeSigned);
-      console.log("Transfer messageBytes", messageBytes);
-      const messageHash = ethers.keccak256(messageBytes);
-      const signature = await window.ethereum.request({
-        method: "personal_sign",
-        params: [messageHash, address],
-      });
+      // Sign the message using ethers.js
+      const signature = await signer.signMessage(msgToBeSigned);
       console.log("Transfer signature: ", signature);
 
       // send to backend
       let transferRes = await postToBE("payment/doTransferFund", {
         timestamp,
         sender: address.toLowerCase(),
-        amount: etherToWei(amount),
+        amount: amountInWei,  // Send the same amountInWei value
         recipientAddress: recipientAddress.toLowerCase(),
         textMessage,
         signature,
