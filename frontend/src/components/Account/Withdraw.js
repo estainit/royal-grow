@@ -588,14 +588,20 @@ const Withdraw = () => {
 
     try {
       setIsLoadingEvents(true);
-      // const events = await globData.royalGrowcontractInstance.getPastEvents(
-      //   "WithdrawAttempt",
-      //   {
-      //     fromBlock: 0,
-      //     toBlock: "latest",
-      //   }
-      // );
-      // setPastEvents(events);
+      // Get the current block number
+      const currentBlock = await globData.royalGrowcontractInstance.runner.provider.getBlockNumber();
+      // Get events from the last 1000 blocks (adjust this number as needed)
+      const fromBlock = Math.max(0, currentBlock - 1000);
+      
+      const filter = globData.royalGrowcontractInstance.filters.WithdrawEvent();
+      const events = await globData.royalGrowcontractInstance.queryFilter(
+        filter,
+        fromBlock,
+        currentBlock
+      );
+      
+      console.log("Fetched past events:", events);
+      setPastEvents(events);
     } catch (error) {
       console.error("Error fetching past events:", error);
       dspEvent("Failed to fetch past withdrawal attempts", "error");
