@@ -25,7 +25,7 @@ const SendMoney = () => {
       console.log("Sending money from selected account:", selectedAccount);
       console.log("Sending money weiAmount:", weiAmount);
       console.log(
-        "Sending money to contract:",
+        "Sending money to contract1:",
         globData.royalGrowContractAddress
       );
 
@@ -69,7 +69,7 @@ const SendMoney = () => {
       console.log("Sending money from selected account:", selectedAccount);
       console.log("Sending money weiAmount:", weiAmount);
       console.log(
-        "Sending money to contract:",
+        "Sending money to contract2:",
         globData.royalGrowContractAddress
       );
 

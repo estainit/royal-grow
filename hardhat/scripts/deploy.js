@@ -37,6 +37,9 @@ async function main() {
     );
   }
 
+  console.log("deploying_network:", deploying_network);
+  console.log("the provider:", provider);
+
   const [deployer] = await ethers.getSigners();
   const balanceBeforeDeploy = await provider.getBalance(deployer.address);
 
