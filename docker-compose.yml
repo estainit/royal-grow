@@ -14,7 +14,7 @@ services:
     image: rgi_db
     container_name: rgc_db
     ports:
-    - "5433:5433"
+    - "5433:5432"
     networks:
       - rgnetwork
 
