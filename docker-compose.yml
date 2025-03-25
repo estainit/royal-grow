@@ -28,7 +28,6 @@ services:
     container_name: rgc_be
     ports:
       - "3100:3100"  # your existing port
-      - "9229:9229"  # debug port
     volumes:
       - ./backend:/backend
       - /backend/node_modules  # Preserve container's node_modules
@@ -76,7 +75,7 @@ services:
 #      - /frontend/node_modules
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=https://cryptafe.com
+      - REACT_APP_API_URL=https://cryptafe.com/api
     depends_on:
       - backend
 #      - hardhat

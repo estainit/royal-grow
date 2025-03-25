@@ -1,10 +1,10 @@
 import axios from "axios";
 import { ethers } from "ethers";
-import { API_URL } from '../config';
+import { BACKEND_API_URL } from '../config';
 
 export const postToBE = async (cmd, data) => {
   try {
-    const response = await axios.post(API_URL + "/" + cmd, data);
+    const response = await axios.post(BACKEND_API_URL + "/" + cmd, data);
     console.log("Data sent successfully:", response.data);
   } catch (error) {
     console.error(`Error in post to BE: ${cmd}`, data, error);
@@ -12,10 +12,10 @@ export const postToBE = async (cmd, data) => {
 };
 
 export const getFromBE = async (cmd, params) => {
-  console.log(`getFromBE: ${cmd}`, params);
+  console.log(`getFromBE: ${BACKEND_API_URL} ${cmd}`, params);
 
   try {
-    const response = await axios.get(API_URL + "/" + cmd, {
+    const response = await axios.get(BACKEND_API_URL + "/" + cmd, {
       params, // Pass params object for query string parameters
     });
     console.log("Data retrieved successfully:", response.data);

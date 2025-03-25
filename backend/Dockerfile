@@ -27,11 +27,6 @@ COPY --from=builder . .
 # Expose port for your Node.js application (adjust if needed)
 EXPOSE 3100
 
-# Add these lines to your Dockerfile
-ENV NODE_OPTIONS='--inspect=0.0.0.0:9229'
-EXPOSE 9229
-
 # Run development script with nodemon for hot-reloading
-# CMD [ "nodemon", "--watch", ".", "--ext", "js,json", "--ignore", "node_modules/", "server.js" ]
-CMD ["nodemon", "--watch", ".", "--ext", "js,json", "--ignore", "node_modules/", "--inspect=0.0.0.0:9229", "server.js"]
+CMD ["nodemon", "--watch", ".", "--ext", "js,json", "--ignore", "node_modules/", "server.js"]
 
