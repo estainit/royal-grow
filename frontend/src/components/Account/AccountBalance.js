@@ -170,41 +170,68 @@ const AccountBalance = ({ onConnect }) => {
   }, [globData]);
 
   const verifyProof = async (uniqKey, leave, proof) => {
-    proof = proof.split(",");
-    let validateDCProofRes = await globData.royalGrowcontractInstance.validateDCProof({
-      args: [leave, proof, 1]
-    });
-    console.log("validate DC Proof Res: ", validateDCProofRes);
-    setProofVerifiyResults((prevResults) => ({
-      ...prevResults,
-      [uniqKey]: validateDCProofRes[0],
-    }));
+    try {
+      proof = proof.split(",");
+      let [isValid, message] = await globData.royalGrowcontractInstance.validateDCProof(
+        leave,
+        proof,
+        1
+      );
+      console.log("validate DC Proof Res: ", isValid, message);
+      setProofVerifiyResults((prevResults) => ({
+        ...prevResults,
+        [uniqKey]: isValid,
+      }));
+    } catch (error) {
+      console.error("Error verifying proof:", error);
+      setProofVerifiyResults((prevResults) => ({
+        ...prevResults,
+        [uniqKey]: false,
+      }));
+    }
   };
 
   const alreadyWithdrawed = async (obfRecord) => {
-    let alreadyWithdrawedRes = await globData.royalGrowcontractInstance.alreadyWithdrawed({
-      args: [obfRecord]
-    });
-    console.log("Control already Withdrawed Res: ", alreadyWithdrawedRes);
-    setWithdrawed((prevResults) => ({
-      ...prevResults,
-      [obfRecord]: alreadyWithdrawedRes,
-    }));
+    try {
+      let alreadyWithdrawedRes = await globData.royalGrowcontractInstance.alreadyWithdrawed(
+        obfRecord
+      );
+      console.log("Control already Withdrawed Res: ", alreadyWithdrawedRes);
+      setWithdrawed((prevResults) => ({
+        ...prevResults,
+        [obfRecord]: alreadyWithdrawedRes,
+      }));
+    } catch (error) {
+      console.error("Error checking withdrawal status:", error);
+      setWithdrawed((prevResults) => ({
+        ...prevResults,
+        [obfRecord]: false,
+      }));
+    }
   };
 
   const verifyCredit = async (clearRecord, proof) => {
-    proof = proof.split(",");
-    console.log("clearRecord: ", clearRecord);
-    let clearRecordInfo = clearRecordParser(clearRecord);
-    console.log("clearRecordInfo: ", clearRecordInfo);
-    let validateDCCreditRes = await globData.royalGrowcontractInstance.validateDCCredit({
-      args: [clearRecord, proof]
-    });
-    console.log("validate DC Credit Res: ", validateDCCreditRes);
-    setCreditVerifiyResults((prevResults) => ({
-      ...prevResults,
-      [clearRecord]: validateDCCreditRes[0],
-    }));
+    try {
+      proof = proof.split(",");
+      console.log("clearRecord: ", clearRecord);
+      let clearRecordInfo = clearRecordParser(clearRecord);
+      console.log("clearRecordInfo: ", clearRecordInfo);
+      let [isValid, message] = await globData.royalGrowcontractInstance.validateDCCredit(
+        clearRecord,
+        proof
+      );
+      console.log("validate DC Credit Res: ", isValid, message);
+      setCreditVerifiyResults((prevResults) => ({
+        ...prevResults,
+        [clearRecord]: isValid,
+      }));
+    } catch (error) {
+      console.error("Error verifying credit:", error);
+      setCreditVerifiyResults((prevResults) => ({
+        ...prevResults,
+        [clearRecord]: false,
+      }));
+    }
   };
 
   const makeFullRGCD = async () => {
