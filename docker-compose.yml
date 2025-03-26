@@ -72,13 +72,11 @@ services:
       - "81:3000"  # Expose frontend port
     volumes:
       - ./frontend:/frontend
-#      - /frontend/node_modules
     environment:
       - NODE_ENV=production
       - REACT_APP_API_URL=https://cryptafe.com/api
     depends_on:
       - backend
-#      - hardhat
     networks:
       - rgnetwork
     restart: unless-stopped

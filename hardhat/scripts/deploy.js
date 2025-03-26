@@ -87,7 +87,7 @@ async function main() {
   saveFrontendContracts("RoyalGrow");
 
   // save contracts addresses
-  saveFrontendContractAddresses(contractsAddresses);
+  await saveFrontendContractAddresses(contractsAddresses);
 
   /*
   //const ethers = require('ethers'); 
