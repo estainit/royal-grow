@@ -34,6 +34,15 @@ export const AppProvider = ({ children }) => {
           );
           console.log("xxx ... ... xxx. ... .. xx...  . royalGrowcontract 1", royalGrowcontract);
 
+          // Create contract instance with provider for event listening
+          const royalGrowcontractWithProvider = new ethers.Contract(
+            royalGrowContractAddress,
+            RoyalGrow.abi,
+            provider
+          );
+          
+          console.log("Contract instance created with signer:", royalGrowcontract);
+          console.log("Contract instance created with provider:", royalGrowcontractWithProvider);
 
           try {
             const getContractBalance = async () => {
@@ -87,6 +96,7 @@ export const AppProvider = ({ children }) => {
               RoyalGrow: RoyalGrow,
               royalGrowContractAddress: royalGrowContractAddress,
               royalGrowcontractInstance: royalGrowcontract,
+              royalGrowcontractWithProvider: royalGrowcontractWithProvider,
             });
           } catch (error) {
             console.error("Error fetching contract data:", error);
