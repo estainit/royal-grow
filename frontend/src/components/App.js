@@ -134,7 +134,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p onClick={() => getContractBalance()} className="topLogoAndAccount">
-          <span className="logo-text">Royal GrowTh!</span>
+          <span className="logo-text" title={globData?.royalGrowContractAddress || 'Contract not initialized'}>Royal GrowTh!</span>
           <span className="account-info">
             {selectedAccount && typeof selectedAccount === 'string' && selectedAccount.length >= 10 
               ? `${selectedAccount.slice(0, 6)}...${selectedAccount.slice(-4)}`
