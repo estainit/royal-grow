@@ -58,9 +58,7 @@ export const AppProvider = ({ children }) => {
                 }
 
                 // Try to get the balance
-                const balance = await royalGrowcontract.methods
-                  .balance()
-                  .call();
+                const balance = await royalGrowcontract.balance();
                 console.log("Raw balance:", balance);
 
                 // If balance is null, undefined, or empty string, return 0.0

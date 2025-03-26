@@ -77,7 +77,7 @@ const AccountBalance = ({ onConnect }) => {
       // Get the current account without requesting access
       const accounts = await globData.provider.listAccounts();
       if (!accounts || accounts.length === 0) {
-        setUserBalance(null);
+        setUserBalance(0);
         return;
       }
 
@@ -86,8 +86,8 @@ const AccountBalance = ({ onConnect }) => {
       setOnchainCredit(balance);
     } catch (error) {
       console.error("Error fetching user Balance:", error);
-      setError(error.message);
-      setUserBalance(null);
+      //setError(error.message);
+      setUserBalance(0);
     } finally {
       setIsLoading(false);
     }
