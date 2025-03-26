@@ -6,7 +6,6 @@ import {
   getWalletSelectedAccountByWalletSigner,
   getFromBE,
   weiToEther,
-  doKeccak256,
   numberWithCommas,
   clearRecordParser,
 } from "../CUtils";
@@ -20,10 +19,10 @@ const AccountBalance = ({ onConnect }) => {
   const { globData } = useContext(AppContext);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState("");
+  /* const [selectedAccount, setSelectedAccount] = useState(""); */
   const [payedToContract, setPayedToContract] = useState(0);
   const [onchainCredit, setOnchainCredit] = useState(0);
-  const [spent, setSpent] = useState(0);
+  /* const [spent, setSpent] = useState(0); */
   const [rgCredit, setRgCredit] = useState(0);
   const [error, setError] = useState(null);
   const [fullDC, setFullDC] = useState({ root: "", records: [] });
@@ -40,7 +39,7 @@ const AccountBalance = ({ onConnect }) => {
     const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(
       globData
     );
-    setSelectedAccount(selectedAccount_.address);
+    /* setSelectedAccount(selectedAccount_.address); */
 
     const paymentInfo = await getFromBE("payment/getTotalPaymentsToContract", {
       payer: selectedAccount_.address.toLowerCase(),
@@ -58,7 +57,7 @@ const AccountBalance = ({ onConnect }) => {
       globData
     );
     const theAddress = selectedAccount_.address.toLowerCase();
-    setSelectedAccount(theAddress);
+    /* setSelectedAccount(theAddress); */
     console.log("fetch RG Credit for ", theAddress);
     const paymentInfo = await getFromBE("dc/getRGCredit", {
       creditor: theAddress,
@@ -235,7 +234,7 @@ const AccountBalance = ({ onConnect }) => {
   };
 
   const makeFullRGCD = async () => {
-    const selectedAccount = await getWalletSelectedAccountByWalletSigner(
+    const selectedAccount_ = await getWalletSelectedAccountByWalletSigner(
       globData
     );
 
@@ -246,7 +245,7 @@ const AccountBalance = ({ onConnect }) => {
 
     const rGCD = await getFromBE("dc/makeFullRGCD", {
       serialNumber: currentSerialNumber,
-      account: selectedAccount.address,
+      account: selectedAccount_.address,
     });
     console.log("make Full RGCD info", rGCD);
     if (rGCD) {
@@ -283,7 +282,7 @@ const AccountBalance = ({ onConnect }) => {
           >
             Total payed to contract: {weiToEther(payedToContract)} Eth
           </p>
-          <p>Spent: {spent} Eth</p>
+          <p style={{display: 'none'}}>Spent: Eth</p>
           <p 
             onClick={() => fetchRGCredit()} 
             title={rgCredit + " wei"}
