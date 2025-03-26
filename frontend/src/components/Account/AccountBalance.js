@@ -82,7 +82,7 @@ const AccountBalance = ({ onConnect }) => {
         return;
       }
 
-      const balance = await globData.royalGrowcontractInstance.getCreditorBalance();
+      const balance = await globData.royalGrowcontractInstance.getCreditorBalanceView();
       setUserBalance(ethers.formatEther(balance));
       setOnchainCredit(balance);
     } catch (error) {
