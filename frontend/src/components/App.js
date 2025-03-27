@@ -152,9 +152,9 @@ function App() {
           <AccountBalance onConnect={fetchUserBalance} />
         </div>
 
-        <div className="dashboard-section transactions-section">
+{/*         <div className="dashboard-section transactions-section">
           <TransactionInfo />
-        </div>
+        </div> */}
 
         <div
           className="dashboard-section winner-section"

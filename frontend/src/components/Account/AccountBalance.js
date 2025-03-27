@@ -499,15 +499,6 @@ const AccountBalance = ({ onConnect }) => {
             </Col>
           </Row>
         </div>
-        <div>
-          {isLoading ? (
-            <p>Loading balance...</p>
-          ) : userBalance !== null ? (
-            <p>{userBalance} ETH</p>
-          ) : (
-            <button onClick={handleConnect}>Connect Wallet</button>
-          )}
-        </div>
       </div>
     </div>
   );
