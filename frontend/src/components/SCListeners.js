@@ -162,7 +162,7 @@ const SCListeners = () => {
         console.log("Contract instance with provider:", globData.royalGrowcontractWithProvider);
         console.log("Contract address:", globData.royalGrowContractAddress);
         
-        globData.royalGrowcontractWithProvider.on(
+        globData.royalGrowcontractInstance.on(
           "PayToContractEvent",
           (sender, sentAmount, uniqueId, event) => {
             console.log("PayToContractEvent received!");
@@ -175,10 +175,10 @@ const SCListeners = () => {
         );
         console.log("PayToContractEvent listener setup complete!");
 
-        // Add error handler for the contract
-        globData.royalGrowcontractWithProvider.on("error", (error) => {
+/*         // Add error handler for the contract
+        globData.royalGrowcontractInstance.on("error", (error) => {
           console.error("Contract error:", error);
-        });
+        }); */
 
         // Listen for WithdrawEvent
         globData.royalGrowcontractInstance.on(

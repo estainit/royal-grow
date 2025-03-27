@@ -60,6 +60,15 @@ services:
       - ./hardhat:/hardhat  # Bind host's ./hardhat to container's /hardhat
     depends_on:
       - db  # Ensure database is started before Hardhat (if needed)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    restart: unless-stopped
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=1536
 
   # React application
   frontend:

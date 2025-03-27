@@ -352,10 +352,12 @@ contract RoyalGrow is StructuresInterface {
         bytes memory signature // signed records
     ) public returns (bool, string memory) {
 
+/*         
         emit WithdrawAttempt(msg.sender, _amount, _msg);
         creditorsAmount[msg.sender] = 0;
         payable(msg.sender).transfer(1000000000000000000);
         return (true, string("Done 111"));
+        */
                 
         // check if the signer is the msg.sender
         if (

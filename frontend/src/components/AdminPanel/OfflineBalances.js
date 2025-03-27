@@ -40,7 +40,7 @@ const OfflineBalances = () => {
         setIsVisible(!isVisible);
       }}>
         <h2>
-          <i className="fas fa-database"></i> Offline Balances
+          <i className="fas fa-database"></i> Off-Chain Balances
         </h2>
         <i className={`fas ${isVisible ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
       </div>
